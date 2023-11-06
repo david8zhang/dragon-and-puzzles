@@ -1,3 +1,3 @@
-# Phaser 3 Typescript Boilerplate
+# Dragon and Puzzles
 
-- Based on Ourcade's boilerplate, with a few additional modifications to support DOM element UI out of the box, as well as some package.json version configurations to support easy deployment with Netlify
+Github Game-Off 2023 project based on Puzzle and Dragons
