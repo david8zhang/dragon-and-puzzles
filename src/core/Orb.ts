@@ -2,6 +2,7 @@ import { Game } from '~/scenes/Game'
 import { Board } from './Board'
 
 export interface OrbConfig {
+  id: number
   position: {
     x: number
     y: number
@@ -12,6 +13,7 @@ export interface OrbConfig {
 }
 
 export class Orb {
+  public id: number
   private scene: Game
   private board: Board
   public sprite: Phaser.GameObjects.Arc
@@ -21,6 +23,7 @@ export class Orb {
   }
 
   constructor(scene: Game, config: OrbConfig) {
+    this.id = config.id
     this.scene = scene
     this.board = config.board
     this.sprite = this.scene.add
