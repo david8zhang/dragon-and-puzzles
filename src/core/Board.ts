@@ -16,7 +16,7 @@ export class Board {
 
   private scene: Game
   private grid: Phaser.Geom.Rectangle[][] = []
-  private orbs: Orb[][] = []
+  private orbs: (Orb | null)[][] = []
   private graphics: Phaser.GameObjects.Graphics
 
   constructor(scene: Game) {
@@ -29,7 +29,6 @@ export class Board {
   setupGrid() {
     let xPos = Board.GRID_TOP_LEFT_X
     let yPos = Board.GRID_TOP_LEFT_Y
-    let orbId: number = 0
     for (let i = 0; i < Board.BOARD_HEIGHT; i++) {
       const orbRow: Orb[] = []
       const gridRow: Phaser.Geom.Rectangle[] = []
@@ -37,7 +36,7 @@ export class Board {
       for (let j = 0; j < Board.BOARD_WIDTH; j++) {
         const cell = new Phaser.Geom.Rectangle(xPos, yPos, Board.CELL_SIZE, Board.CELL_SIZE)
         const orb = new Orb(this.scene, {
-          id: orbId,
+          id: Phaser.Utils.String.UUID(),
           position: {
             x: cell.centerX,
             y: cell.centerY,
@@ -50,7 +49,6 @@ export class Board {
         gridRow[j] = cell
         this.graphics.strokeRectShape(cell)
         xPos += Board.CELL_SIZE
-        orbId++
       }
       yPos += Board.CELL_SIZE
       this.orbs[i] = orbRow
@@ -120,21 +118,21 @@ export class Board {
 
   handleCombos() {
     // Check for all horizontal 3+ matches
-    const horizontalCombos: number[][] = []
-    let longestHorizCombo: number[] = []
+    const horizontalCombos: string[][] = []
+    let longestHorizCombo: string[] = []
     for (let row = 0; row < Board.BOARD_HEIGHT; row++) {
       const orbsInRow = this.orbs[row]
       let prevOrb = orbsInRow[0]
-      longestHorizCombo = [prevOrb.id]
+      longestHorizCombo = [prevOrb!.id]
       for (let i = 1; i < orbsInRow.length; i++) {
         const orb = orbsInRow[i]
-        if (orb.sprite.fillColor == prevOrb.sprite.fillColor) {
-          longestHorizCombo.push(orb.id)
+        if (orb!.sprite.fillColor == prevOrb!.sprite.fillColor) {
+          longestHorizCombo.push(orb!.id)
         } else {
           if (longestHorizCombo.length >= 3) {
             horizontalCombos.push([...longestHorizCombo])
           }
-          longestHorizCombo = [orb.id]
+          longestHorizCombo = [orb!.id]
         }
         prevOrb = orb
       }
@@ -144,23 +142,23 @@ export class Board {
     }
 
     // Check for all vertical 3+ matches
-    const verticalCombos: number[][] = []
-    let longestVerticalCombo: number[] = []
+    const verticalCombos: string[][] = []
+    let longestVerticalCombo: string[] = []
     for (let i = 0; i < this.orbs[0].length; i++) {
       let prevOrb: Orb | null = null
       for (let j = 0; j < this.orbs.length; j++) {
         const currOrb = this.orbs[j][i]
         if (!prevOrb) {
           prevOrb = currOrb
-          longestVerticalCombo = [prevOrb.id]
+          longestVerticalCombo = [prevOrb!.id]
         } else {
-          if (prevOrb.sprite.fillColor == currOrb.sprite.fillColor) {
-            longestVerticalCombo.push(currOrb.id)
+          if (prevOrb.sprite.fillColor == currOrb!.sprite.fillColor) {
+            longestVerticalCombo.push(currOrb!.id)
           } else {
             if (longestVerticalCombo.length >= 3) {
               verticalCombos.push([...longestVerticalCombo])
             }
-            longestVerticalCombo = [currOrb.id]
+            longestVerticalCombo = [currOrb!.id]
           }
           prevOrb = currOrb
         }
@@ -171,20 +169,120 @@ export class Board {
     }
     const joinedCombos = this.joinCombos(horizontalCombos, verticalCombos)
 
-    // Remove combos from the board
-    this.removeCombos(joinedCombos)
+    if (joinedCombos.length > 0) {
+      // Remove combos from the board
+      this.removeCombos(joinedCombos, () => {
+        // Spawn new orbs or have other orbs fall to fill in empty columns
+        this.handleEmptyColumns()
+      })
+    } else {
+      // Handle player turn ending
+    }
   }
 
-  removeCombos(combos: number[][]) {
+  handleEmptyColumns() {
+    /**
+     * - For each column, you get something like:
+     *
+     *    o
+     *    o
+     *    x
+     *    x
+     *    o
+     *
+     * where the o's are orbs and x's are empty spaces. Rotating to a horizontal array makes it easier to think about:
+     *
+     * o o x x o
+     *
+     * we see that we need to process the array from right to left, keeping track of the right-most empty position
+     * and shifting orbs over whenever we see them.
+     *
+     * Store coordinates of empty slots in a queue, and every time we see an orb, we pop off the queue and shift the orb to that coord position. If there is nothing in the queue, then that orb is filling the rightmost space.
+     *
+     * Whenever we shift an orb over, that orb's position now becomes empty so its coordinate will need to be added to the queue as well.
+     *
+     * q: 1, 2
+     *
+     * 0 1 2 3 4
+     * x x o o o
+     *
+     * After this is done, we are left with a queue which contains all of the empty positions from right to left. This will be useful in the 2nd phase of the algorithm, which is spawning new orbs to fill in available space
+     *
+     *
+     * When we spawn in new orbs, it's simply a matter of iterating through the queue and creating a new orb for each given element, which corresponds to the empty space
+     */
+
+    const allEmptySlots: BoardPosition[][] = []
+    for (let i = 0; i < this.orbs[0].length; i++) {
+      const emptySlotQueue: BoardPosition[] = []
+      for (let j = this.orbs.length - 1; j >= 0; j--) {
+        if (this.orbs[j][i] == null) {
+          emptySlotQueue.push({ row: j, col: i })
+        } else {
+          const orb = this.orbs[j][i]!
+          if (emptySlotQueue.length > 0) {
+            const lowestEmptySlot = emptySlotQueue.shift()!
+            this.moveOrbToNewLocation(lowestEmptySlot.row, lowestEmptySlot.col, orb)
+            emptySlotQueue.push({ row: j, col: i })
+          }
+        }
+      }
+      allEmptySlots.push(emptySlotQueue)
+    }
+
+    allEmptySlots.forEach((column) => {
+      let yPos = Board.GRID_TOP_LEFT_Y - 25
+      column.forEach((slot) => {
+        const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
+        const newOrb = new Orb(this.scene, {
+          position: {
+            x: worldPosForRowCol!.centerX,
+            y: yPos,
+          },
+          id: Phaser.Utils.String.UUID(),
+          radius: Board.CELL_SIZE / 2 - 10,
+          color: Phaser.Utils.Array.GetRandom(Constants.ORB_COLORS),
+          board: this,
+          currCell: {
+            row: slot.row,
+            col: slot.col,
+          },
+        })
+        const fallSpeed = 0.25
+        const distance = worldPosForRowCol!.centerY - yPos
+        newOrb.sprite.setVisible(false)
+        this.scene.tweens.add({
+          targets: [newOrb.sprite],
+          y: {
+            from: yPos,
+            to: worldPosForRowCol!.centerY,
+          },
+          duration: distance / fallSpeed,
+          onUpdate: () => {
+            if (newOrb.sprite.y >= Board.GRID_TOP_LEFT_Y) {
+              newOrb.sprite.setVisible(true)
+            }
+          },
+          onComplete: () => {
+            this.moveOrbToNewLocation(slot.row, slot.col, newOrb)
+          },
+        })
+        yPos -= Board.CELL_SIZE - 20
+      })
+    })
+  }
+
+  removeCombos(combos: string[][], onOrbsRemovedCb: Function) {
     const orbIdToOrbMapping = {}
     for (let i = 0; i < this.orbs.length; i++) {
       for (let j = 0; j < this.orbs[i].length; j++) {
         const orb = this.orbs[i][j]
-        orbIdToOrbMapping[orb.id] = orb
+        orbIdToOrbMapping[orb!.id] = orb
       }
     }
     const removeOrbs = (comboToRemoveIndex: number) => {
       if (comboToRemoveIndex === combos.length) {
+        onOrbsRemovedCb()
         return
       }
       const orbs: Orb[] = combos[comboToRemoveIndex].map((orbId) => orbIdToOrbMapping[orbId])
@@ -197,7 +295,11 @@ export class Board {
           to: 0,
         },
         onComplete: () => {
-          orbs.forEach((orb) => orb.destroy())
+          orbs.forEach((orb) => {
+            const rowCol = orb.currCell
+            this.orbs[rowCol.row][rowCol.col] = null
+            orb.destroy()
+          })
           removeOrbs(comboToRemoveIndex + 1)
         },
       })
@@ -205,14 +307,20 @@ export class Board {
     removeOrbs(0)
   }
 
-  joinCombos(horizontalCombos: number[][], verticalCombos: number[][]): number[][] {
+  joinCombos(horizontalCombos: string[][], verticalCombos: string[][]): string[][] {
     // Join horizontal and vertical combos together using union find
-    const parentArr = new Array(Board.BOARD_WIDTH * Board.BOARD_HEIGHT)
-      .fill(0)
-      .map((value, index) => index)
-    const rank = new Array(Board.BOARD_WIDTH * Board.BOARD_HEIGHT).fill(1)
+    const parentArr = {}
+    const rank = {}
 
-    var adjList: number[][] = []
+    for (let i = 0; i < this.orbs.length; i++) {
+      for (let j = 0; j < this.orbs[i].length; j++) {
+        const orb = this.orbs[i][j] as Orb
+        parentArr[orb.id] = orb.id
+        rank[orb.id] = 1
+      }
+    }
+
+    var adjList: string[][] = []
     horizontalCombos.forEach((hCombo) => {
       for (let i = 0; i < hCombo.length - 1; i++) {
         adjList.push([hCombo[i], hCombo[i + 1]])
@@ -224,7 +332,7 @@ export class Board {
       }
     })
 
-    const find = (orbId: number) => {
+    const find = (orbId: string) => {
       let res = orbId
       while (res != parentArr[res]) {
         parentArr[res] = parentArr[parentArr[res]]
@@ -233,7 +341,7 @@ export class Board {
       return res
     }
 
-    const union = (orbA: number, orbB: number) => {
+    const union = (orbA: string, orbB: string) => {
       const parentA = find(orbA)
       const parentB = find(orbB)
       if (parentA == parentB) {
@@ -252,16 +360,17 @@ export class Board {
       union(edge[0], edge[1])
     })
     const comboMapping = {}
-    parentArr.forEach((_, index) => {
-      parentArr[index] = find(index)
+    Object.keys(parentArr).forEach((key) => {
+      parentArr[key] = find(key)
     })
 
-    parentArr.forEach((parent, index) => {
-      if (parent != index) {
+    Object.keys(parentArr).forEach((key) => {
+      const parent = parentArr[key]
+      if (parent != key) {
         if (!comboMapping[parent]) {
           comboMapping[parent] = [parent]
         }
-        comboMapping[parent].push(index)
+        comboMapping[parent].push(key)
       }
     })
     return Object.values(comboMapping)

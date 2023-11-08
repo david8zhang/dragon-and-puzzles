@@ -2,7 +2,7 @@ import { Game } from '~/scenes/Game'
 import { Board } from './Board'
 
 export interface OrbConfig {
-  id: number
+  id: string
   position: {
     x: number
     y: number
@@ -10,14 +10,18 @@ export interface OrbConfig {
   radius: number
   color: number
   board: Board
+  currCell?: {
+    row: number
+    col: number
+  }
 }
 
 export class Orb {
-  public id: number
+  public id: string
   private scene: Game
   private board: Board
   public sprite: Phaser.GameObjects.Arc
-  private currCell: {
+  public currCell: {
     row: number
     col: number
   }
@@ -30,7 +34,12 @@ export class Orb {
       .circle(config.position.x, config.position.y, config.radius, config.color)
       .setOrigin(0.5, 0.5)
       .setInteractive()
-    this.currCell = this.board.getRowColForWorldPosition(config.position.x, config.position.y)
+
+    if (config.currCell) {
+      this.currCell = config.currCell
+    } else {
+      this.currCell = this.board.getRowColForWorldPosition(config.position.x, config.position.y)
+    }
     this.scene.input.setDraggable(this.sprite)
     this.sprite.on('drag', (e) => {
       this.handleDragStart(e.worldX, e.worldY)
@@ -68,5 +77,6 @@ export class Orb {
 
   destroy() {
     this.sprite.destroy()
+    this.board
   }
 }
