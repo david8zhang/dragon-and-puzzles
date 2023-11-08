@@ -30,7 +30,6 @@ export class Orb {
       .circle(config.position.x, config.position.y, config.radius, config.color)
       .setOrigin(0.5, 0.5)
       .setInteractive()
-
     this.currCell = this.board.getRowColForWorldPosition(config.position.x, config.position.y)
     this.scene.input.setDraggable(this.sprite)
     this.sprite.on('drag', (e) => {
@@ -65,5 +64,9 @@ export class Orb {
     this.currCell = { row, col }
     const cell = this.board.getCellAtRowCol(row, col)
     this.sprite.setPosition(cell!.centerX, cell!.centerY)
+  }
+
+  destroy() {
+    this.sprite.destroy()
   }
 }

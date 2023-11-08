@@ -170,6 +170,12 @@ export class Board {
       }
     }
     const joinedCombos = this.joinCombos(horizontalCombos, verticalCombos)
+
+    // Remove combos from the board
+    this.removeCombos(joinedCombos)
+  }
+
+  removeCombos(combos: number[][]) {
     const orbIdToOrbMapping = {}
     for (let i = 0; i < this.orbs.length; i++) {
       for (let j = 0; j < this.orbs[i].length; j++) {
@@ -177,12 +183,26 @@ export class Board {
         orbIdToOrbMapping[orb.id] = orb
       }
     }
-
-    joinedCombos.forEach((combo) => {
-      combo.forEach((orbId) => {
-        orbIdToOrbMapping[orbId].sprite.setAlpha(0.3)
+    const removeOrbs = (comboToRemoveIndex: number) => {
+      if (comboToRemoveIndex === combos.length) {
+        return
+      }
+      const orbs: Orb[] = combos[comboToRemoveIndex].map((orbId) => orbIdToOrbMapping[orbId])
+      const orbSprites = orbs.map((orb: Orb) => orb.sprite)
+      this.scene.tweens.add({
+        duration: 500,
+        targets: orbSprites,
+        alpha: {
+          from: 1,
+          to: 0,
+        },
+        onComplete: () => {
+          orbs.forEach((orb) => orb.destroy())
+          removeOrbs(comboToRemoveIndex + 1)
+        },
       })
-    })
+    }
+    removeOrbs(0)
   }
 
   joinCombos(horizontalCombos: number[][], verticalCombos: number[][]): number[][] {
@@ -231,8 +251,11 @@ export class Board {
     adjList.forEach((edge) => {
       union(edge[0], edge[1])
     })
-
     const comboMapping = {}
+    parentArr.forEach((_, index) => {
+      parentArr[index] = find(index)
+    })
+
     parentArr.forEach((parent, index) => {
       if (parent != index) {
         if (!comboMapping[parent]) {
