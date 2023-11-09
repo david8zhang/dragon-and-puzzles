@@ -176,7 +176,7 @@ export class Board {
         this.handleEmptyColumns()
       })
     } else {
-      // Handle player turn ending
+      console.log('Handle turn end!')
     }
   }
 
@@ -230,9 +230,14 @@ export class Board {
       allEmptySlots.push(emptySlotQueue)
     }
 
-    allEmptySlots.forEach((column) => {
+    if (allEmptySlots.length == 0) {
+      this.handleCombos()
+    }
+
+    let timeUntilLastOrbFalls = 0
+    allEmptySlots.forEach((column, index) => {
       let yPos = Board.GRID_TOP_LEFT_Y - 25
-      column.forEach((slot) => {
+      column.forEach((slot, slotIndex) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
         const newOrb = new Orb(this.scene, {
           position: {
@@ -248,27 +253,37 @@ export class Board {
             col: slot.col,
           },
         })
+        this.orbs[slot.row][slot.col] = newOrb
         const fallSpeed = 0.25
         const distance = worldPosForRowCol!.centerY - yPos
         newOrb.sprite.setVisible(false)
+        const onCompleteCallback = () => {
+          this.moveOrbToNewLocation(slot.row, slot.col, newOrb)
+        }
+        const fallDuration = distance / fallSpeed
+        timeUntilLastOrbFalls = Math.max(fallDuration, timeUntilLastOrbFalls)
         this.scene.tweens.add({
           targets: [newOrb.sprite],
           y: {
             from: yPos,
             to: worldPosForRowCol!.centerY,
           },
-          duration: distance / fallSpeed,
+          duration: fallDuration,
           onUpdate: () => {
             if (newOrb.sprite.y >= Board.GRID_TOP_LEFT_Y) {
               newOrb.sprite.setVisible(true)
             }
           },
           onComplete: () => {
-            this.moveOrbToNewLocation(slot.row, slot.col, newOrb)
+            onCompleteCallback()
           },
         })
         yPos -= Board.CELL_SIZE - 20
       })
+    })
+
+    this.scene.time.delayedCall(timeUntilLastOrbFalls, () => {
+      this.handleCombos()
     })
   }
 
