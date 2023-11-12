@@ -14,11 +14,12 @@ export class Board {
 	private static GRID_TOP_LEFT_X = 75;
 	private static GRID_TOP_LEFT_Y = 340;
 
+	public isProcessingCombos = false;
+
 	private scene: Game;
 	private grid: Phaser.Geom.Rectangle[][] = [];
 	private orbs: (Orb | null)[][] = [];
 	private graphics: Phaser.GameObjects.Graphics;
-
 	private comboListener: Array<(combos: string[][]) => void> = [];
 
 	constructor(scene: Game) {
@@ -136,6 +137,7 @@ export class Board {
 	}
 
 	handleCombos() {
+		this.isProcessingCombos = true;
 		// Check for all horizontal 3+ matches
 		const horizontalCombos: string[][] = [];
 		let longestHorizCombo: string[] = [];
@@ -196,6 +198,7 @@ export class Board {
 				this.handleEmptyColumns();
 			});
 		} else {
+			this.isProcessingCombos = false;
 			console.log('Handle turn end!');
 		}
 	}
