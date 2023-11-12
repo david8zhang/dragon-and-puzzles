@@ -14,19 +14,34 @@ export class Board {
   private static GRID_TOP_LEFT_X = 75
   private static GRID_TOP_LEFT_Y = 340
 
-  public isProcessingCombos = false
+  private processingCombos = false
+  private disabled = false
+  isInteractable = () => !this.processingCombos && !this.disabled
 
   private scene: Game
   private grid: Phaser.Geom.Rectangle[][] = []
   private orbs: (Orb | null)[][] = []
   private graphics: Phaser.GameObjects.Graphics
-  private comboListener: Array<(combos: string[][]) => void> = []
+  private overlay: Phaser.GameObjects.Rectangle
+
+  private combos: string[][] = [] // Total combos for the turn
+  private turnEndListener: Array<(combos: string[][]) => void> = []
 
   constructor(scene: Game) {
     this.scene = scene
     this.graphics = this.scene.add.graphics()
     this.graphics.lineStyle(1, 0x00ff00)
     this.setupGrid()
+
+    this.overlay = this.scene.add.rectangle(
+      Board.GRID_TOP_LEFT_X + (Board.BOARD_WIDTH * Board.CELL_SIZE) / 2,
+      Board.GRID_TOP_LEFT_Y + (Board.BOARD_HEIGHT * Board.CELL_SIZE) / 2,
+      Board.BOARD_WIDTH * Board.CELL_SIZE + 1,
+      Board.BOARD_HEIGHT * Board.CELL_SIZE + 1,
+      0x000000,
+      0.0
+    )
+    this.overlay.setDepth(1000)
   }
 
   setupGrid() {
@@ -137,7 +152,7 @@ export class Board {
   }
 
   handleCombos() {
-    this.isProcessingCombos = true
+    this.processingCombos = true
     // Check for all horizontal 3+ matches
     const horizontalCombos: string[][] = []
     let longestHorizCombo: string[] = []
@@ -191,15 +206,20 @@ export class Board {
     const joinedCombos = this.joinCombos(horizontalCombos, verticalCombos)
 
     if (joinedCombos.length > 0) {
-      this.comboListener.forEach((fn) => fn(joinedCombos))
+      // Add combos to total combos for the turn
+      this.combos = this.combos.concat(joinedCombos)
+
       // Remove combos from the board
       this.removeCombos(joinedCombos, () => {
         // Spawn new orbs or have other orbs fall to fill in empty columns
         this.handleEmptyColumns()
       })
     } else {
-      this.isProcessingCombos = false
-      console.log('Handle turn end!')
+      // Turn ended, no more combos to process
+      this.processingCombos = false
+      this.turnEndListener.forEach((fn) => fn(this.combos))
+      this.combos = [] // clear combos for next turn
+      // console.log('Handle turn end!');
     }
   }
 
@@ -423,7 +443,12 @@ export class Board {
     return Object.values(comboMapping)
   }
 
-  addComboListener(fn: (combo: string[][]) => void) {
-    this.comboListener.push(fn)
+  addTurnEndListener(fn: (combos: string[][]) => void) {
+    this.turnEndListener.push(fn)
+  }
+
+  setDisabled(disabled: boolean) {
+    this.overlay.fillAlpha = disabled ? 0.5 : 0.0
+    this.disabled = disabled
   }
 }

@@ -45,11 +45,11 @@ export class Orb {
     }
     this.scene.input.setDraggable(this.sprite)
     this.sprite.on('drag', (e) => {
-      if (this.board.isProcessingCombos) return
+      if (!this.board.isInteractable()) return
       this.handleDragStart(e.worldX, e.worldY)
     })
     this.sprite.on('dragend', (e) => {
-      if (this.board.isProcessingCombos) return
+      if (!this.board.isInteractable()) return
       this.handleDragEnd(e.worldX, e.worldY)
     })
   }
