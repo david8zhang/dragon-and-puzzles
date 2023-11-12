@@ -5,7 +5,7 @@ import { Healthbar } from './Healthbar';
 import { Board } from './Board';
 
 export class Player {
-	private static readonly MAX_HEALTH: number = 100;
+	private static readonly MAX_HEALTH: number = 10;
 
 	private game: Game;
 
@@ -55,6 +55,8 @@ export class Player {
 		this.health -= amount;
 		if (this.health <= 0) {
 			this.health = 0;
+			// TODO: game over
+			this.game.scene.start('gameover');
 		}
 		this.healthBar.draw();
 	}

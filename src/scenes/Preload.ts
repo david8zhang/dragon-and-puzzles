@@ -6,6 +6,7 @@ export class Preload extends Phaser.Scene {
 	preload() {
 		this.load.image('green-dragon-debug', 'flygon.png');
 		this.load.image('fire-dragon-debug', 'charizard.png');
+		this.load.image('gameover', 'gameover.png');
 	}
 
 	create() {
