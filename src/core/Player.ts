@@ -5,7 +5,7 @@ import { Healthbar } from './Healthbar';
 import { Board } from './Board';
 
 export class Player {
-	private static readonly MAX_HEALTH: number = 10;
+	private static readonly MAX_HEALTH: number = 100;
 
 	private game: Game;
 
