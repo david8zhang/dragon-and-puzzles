@@ -9,5 +9,9 @@ export class Game extends Phaser.Scene {
 
   create() {
     this.board = new Board(this)
+    this.board.addComboListener((combo) => {
+      // TODO: calculate damage
+      console.log(combo)
+    })
   }
 }

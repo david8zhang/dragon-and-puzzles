@@ -38,13 +38,18 @@ export class Orb {
     if (config.currCell) {
       this.currCell = config.currCell
     } else {
-      this.currCell = this.board.getRowColForWorldPosition(config.position.x, config.position.y)
+      this.currCell = this.board.getRowColForWorldPosition(
+        config.position.x,
+        config.position.y
+      )
     }
     this.scene.input.setDraggable(this.sprite)
     this.sprite.on('drag', (e) => {
+      if (this.board.isProcessingCombos) return
       this.handleDragStart(e.worldX, e.worldY)
     })
     this.sprite.on('dragend', (e) => {
+      if (this.board.isProcessingCombos) return
       this.handleDragEnd(e.worldX, e.worldY)
     })
   }
@@ -52,18 +57,37 @@ export class Orb {
   handleDragStart(worldX: number, worldY: number) {
     const clampedPos = this.board.clampWithinBounds(worldX, worldY)
     this.sprite.setPosition(clampedPos.worldX, clampedPos.worldY)
-    const newCell = this.board.getRowColForWorldPosition(clampedPos.worldX, clampedPos.worldY)
-    if (newCell.row !== this.currCell.row || newCell.col !== this.currCell.col) {
-      const orbAtNewLocation = this.board.getOrbAtRowCol(newCell.row, newCell.col)!
-      this.board.moveOrbToNewLocation(this.currCell.row, this.currCell.col, orbAtNewLocation)
+    const newCell = this.board.getRowColForWorldPosition(
+      clampedPos.worldX,
+      clampedPos.worldY
+    )
+    if (
+      newCell.row !== this.currCell.row ||
+      newCell.col !== this.currCell.col
+    ) {
+      const orbAtNewLocation = this.board.getOrbAtRowCol(
+        newCell.row,
+        newCell.col
+      )!
+      this.board.moveOrbToNewLocation(
+        this.currCell.row,
+        this.currCell.col,
+        orbAtNewLocation
+      )
       this.currCell = newCell
     }
   }
 
   handleDragEnd(worldX: number, worldY: number) {
     const clampedPos = this.board.clampWithinBounds(worldX, worldY)
-    const cell = this.board.getCellForWorldPosition(clampedPos.worldX, clampedPos.worldY)
-    const { row, col } = this.board.getRowColForWorldPosition(clampedPos.worldX, clampedPos.worldY)
+    const cell = this.board.getCellForWorldPosition(
+      clampedPos.worldX,
+      clampedPos.worldY
+    )
+    const { row, col } = this.board.getRowColForWorldPosition(
+      clampedPos.worldX,
+      clampedPos.worldY
+    )
     this.sprite.setPosition(cell.centerX, cell.centerY)
     this.board.moveOrbToNewLocation(row, col, this)
     this.board.handleCombos()

@@ -14,10 +14,13 @@ export class Board {
   private static GRID_TOP_LEFT_X = 75
   private static GRID_TOP_LEFT_Y = 340
 
+  public isProcessingCombos = false
+
   private scene: Game
   private grid: Phaser.Geom.Rectangle[][] = []
   private orbs: (Orb | null)[][] = []
   private graphics: Phaser.GameObjects.Graphics
+  private comboListener: Array<(combos: string[][]) => void> = []
 
   constructor(scene: Game) {
     this.scene = scene
@@ -34,7 +37,12 @@ export class Board {
       const gridRow: Phaser.Geom.Rectangle[] = []
       xPos = Board.GRID_TOP_LEFT_X
       for (let j = 0; j < Board.BOARD_WIDTH; j++) {
-        const cell = new Phaser.Geom.Rectangle(xPos, yPos, Board.CELL_SIZE, Board.CELL_SIZE)
+        const cell = new Phaser.Geom.Rectangle(
+          xPos,
+          yPos,
+          Board.CELL_SIZE,
+          Board.CELL_SIZE
+        )
         const orb = new Orb(this.scene, {
           id: Phaser.Utils.String.UUID(),
           position: {
@@ -57,7 +65,12 @@ export class Board {
   }
 
   getCellAtRowCol(row: number, col: number) {
-    if (row >= 0 && row < this.grid.length && col >= 0 && col < this.grid[0].length) {
+    if (
+      row >= 0 &&
+      row < this.grid.length &&
+      col >= 0 &&
+      col < this.grid[0].length
+    ) {
       return this.grid[row][col]
     }
   }
@@ -68,7 +81,12 @@ export class Board {
   }
 
   getOrbAtRowCol(row: number, col: number) {
-    if (row >= 0 && row < this.orbs.length && col >= 0 && col < this.orbs[0].length) {
+    if (
+      row >= 0 &&
+      row < this.orbs.length &&
+      col >= 0 &&
+      col < this.orbs[0].length
+    ) {
       return this.orbs[row][col]
     }
   }
@@ -98,8 +116,10 @@ export class Board {
     return (
       worldX >= Board.GRID_TOP_LEFT_X + 15 &&
       worldY >= Board.GRID_TOP_LEFT_Y + 15 &&
-      worldX <= Board.GRID_TOP_LEFT_X + Board.BOARD_WIDTH * Board.CELL_SIZE - 15 &&
-      worldY <= Board.GRID_TOP_LEFT_Y + Board.BOARD_HEIGHT * Board.CELL_SIZE - 15
+      worldX <=
+        Board.GRID_TOP_LEFT_X + Board.BOARD_WIDTH * Board.CELL_SIZE - 15 &&
+      worldY <=
+        Board.GRID_TOP_LEFT_Y + Board.BOARD_HEIGHT * Board.CELL_SIZE - 15
     )
   }
 
@@ -117,6 +137,7 @@ export class Board {
   }
 
   handleCombos() {
+    this.isProcessingCombos = true
     // Check for all horizontal 3+ matches
     const horizontalCombos: string[][] = []
     let longestHorizCombo: string[] = []
@@ -170,12 +191,14 @@ export class Board {
     const joinedCombos = this.joinCombos(horizontalCombos, verticalCombos)
 
     if (joinedCombos.length > 0) {
+      this.comboListener.forEach((fn) => fn(joinedCombos))
       // Remove combos from the board
       this.removeCombos(joinedCombos, () => {
         // Spawn new orbs or have other orbs fall to fill in empty columns
         this.handleEmptyColumns()
       })
     } else {
+      this.isProcessingCombos = false
       console.log('Handle turn end!')
     }
   }
@@ -222,7 +245,11 @@ export class Board {
           const orb = this.orbs[j][i]!
           if (emptySlotQueue.length > 0) {
             const lowestEmptySlot = emptySlotQueue.shift()!
-            this.moveOrbToNewLocation(lowestEmptySlot.row, lowestEmptySlot.col, orb)
+            this.moveOrbToNewLocation(
+              lowestEmptySlot.row,
+              lowestEmptySlot.col,
+              orb
+            )
             emptySlotQueue.push({ row: j, col: i })
           }
         }
@@ -300,7 +327,9 @@ export class Board {
         onOrbsRemovedCb()
         return
       }
-      const orbs: Orb[] = combos[comboToRemoveIndex].map((orbId) => orbIdToOrbMapping[orbId])
+      const orbs: Orb[] = combos[comboToRemoveIndex].map(
+        (orbId) => orbIdToOrbMapping[orbId]
+      )
       const orbSprites = orbs.map((orb: Orb) => orb.sprite)
       this.scene.tweens.add({
         duration: 500,
@@ -322,7 +351,10 @@ export class Board {
     removeOrbs(0)
   }
 
-  joinCombos(horizontalCombos: string[][], verticalCombos: string[][]): string[][] {
+  joinCombos(
+    horizontalCombos: string[][],
+    verticalCombos: string[][]
+  ): string[][] {
     // Join horizontal and vertical combos together using union find
     const parentArr = {}
     const rank = {}
@@ -389,5 +421,9 @@ export class Board {
       }
     })
     return Object.values(comboMapping)
+  }
+
+  addComboListener(fn: (combo: string[][]) => void) {
+    this.comboListener.push(fn)
   }
 }
