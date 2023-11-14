@@ -8,7 +8,7 @@ export interface OrbConfig {
     y: number
   }
   radius: number
-  color: number
+  color: string
   board: Board
   currCell?: {
     row: number
@@ -20,7 +20,8 @@ export class Orb {
   public id: string
   private scene: Game
   private board: Board
-  public sprite: Phaser.GameObjects.Arc
+  public color: string
+  public sprite: Phaser.GameObjects.Sprite
   public currCell: {
     row: number
     col: number
@@ -30,9 +31,11 @@ export class Orb {
     this.id = config.id
     this.scene = scene
     this.board = config.board
+    this.color = config.color
     this.sprite = this.scene.add
-      .circle(config.position.x, config.position.y, config.radius, config.color)
+      .sprite(config.position.x, config.position.y, `orb-${config.color}`)
       .setOrigin(0.5, 0.5)
+      .setScale(2)
       .setInteractive()
 
     if (config.currCell) {
@@ -45,11 +48,11 @@ export class Orb {
     }
     this.scene.input.setDraggable(this.sprite)
     this.sprite.on('drag', (e) => {
-      if (this.board.isProcessingCombos) return
+      if (!this.board.isInteractable()) return
       this.handleDragStart(e.worldX, e.worldY)
     })
     this.sprite.on('dragend', (e) => {
-      if (this.board.isProcessingCombos) return
+      if (!this.board.isInteractable()) return
       this.handleDragEnd(e.worldX, e.worldY)
     })
   }
