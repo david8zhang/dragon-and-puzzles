@@ -10,7 +10,7 @@ export interface EnemyConfig {
 
 export const ENEMIES: EnemyConfig[] = [
   {
-    maxHealth: 10,
+    maxHealth: 100,
     spriteName: 'green-dragon-debug',
   },
   {
@@ -28,6 +28,7 @@ export class Enemy {
   public readonly maxHealth: number
   public health: number
   public healthBar!: Healthbar
+  public sprite: Phaser.GameObjects.Sprite
 
   private game: Game
   private turnsUntilAttack: number = 1
@@ -46,7 +47,7 @@ export class Enemy {
 
     // Set up sprite
     // TODO: add animations for enemy
-    const enemySprite = this.game.add
+    this.sprite = this.game.add
       .sprite(Enemy.POSITION.x, Enemy.POSITION.y, config.spriteName)
       .setScale(2.1)
 
@@ -60,7 +61,6 @@ export class Enemy {
       )
       .setStyle({
         fontSize: '20px',
-        fontFamily: 'VCR',
       })
       .setStroke('#000000', 10)
     // Center align text

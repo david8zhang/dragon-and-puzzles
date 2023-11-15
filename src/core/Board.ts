@@ -1,4 +1,4 @@
-import { Constants } from '~/utils/Constants'
+import { Constants, Elements } from '~/utils/Constants'
 import { Orb } from './Orb'
 import { Game } from '~/scenes/Game'
 
@@ -12,7 +12,7 @@ export class Board {
   private static BOARD_HEIGHT = 5
   private static CELL_SIZE = 75
   private static GRID_TOP_LEFT_X = 75
-  private static GRID_TOP_LEFT_Y = 340
+  private static GRID_TOP_LEFT_Y = 400
 
   private processingCombos = false
   private disabled = false
@@ -26,6 +26,7 @@ export class Board {
 
   private combos: string[][] = [] // Total combos for the turn
   private turnEndListener: Array<(combos: string[][]) => void> = []
+  private comboCounter: Phaser.GameObjects.Group
 
   constructor(scene: Game) {
     this.scene = scene
@@ -42,6 +43,7 @@ export class Board {
       0.0
     )
     this.overlay.setDepth(1000)
+    this.comboCounter = this.scene.add.group()
   }
 
   setupGrid() {
@@ -65,7 +67,7 @@ export class Board {
             y: cell.centerY,
           },
           radius: Board.CELL_SIZE / 2 - 10,
-          color: Phaser.Utils.Array.GetRandom(Constants.ORB_COLORS),
+          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
           board: this,
         })
         orbRow[j] = orb
@@ -151,7 +153,19 @@ export class Board {
     }
   }
 
+  get orbIdToOrbMap(): { [key: string]: Orb } {
+    const map = {}
+    for (let i = 0; i < this.orbs.length; i++) {
+      for (let j = 0; j < this.orbs[i].length; j++) {
+        const orb = this.orbs[i][j]!
+        map[orb.id] = orb
+      }
+    }
+    return map
+  }
+
   handleCombos() {
+    const orbIdToOrbMap = this.orbIdToOrbMap
     this.processingCombos = true
     // Check for all horizontal 3+ matches
     const horizontalCombos: string[][] = []
@@ -162,7 +176,7 @@ export class Board {
       longestHorizCombo = [prevOrb!.id]
       for (let i = 1; i < orbsInRow.length; i++) {
         const orb = orbsInRow[i]
-        if (orb!.color == prevOrb!.color) {
+        if (orb!.element == prevOrb!.element) {
           longestHorizCombo.push(orb!.id)
         } else {
           if (longestHorizCombo.length >= 3) {
@@ -188,7 +202,7 @@ export class Board {
           prevOrb = currOrb
           longestVerticalCombo = [prevOrb!.id]
         } else {
-          if (prevOrb.color == currOrb!.color) {
+          if (prevOrb.element == currOrb!.element) {
             longestVerticalCombo.push(currOrb!.id)
           } else {
             if (longestVerticalCombo.length >= 3) {
@@ -207,7 +221,11 @@ export class Board {
 
     if (joinedCombos.length > 0) {
       // Add combos to total combos for the turn
-      this.combos = this.combos.concat(joinedCombos)
+      const combosWithElements: string[][] = []
+      joinedCombos.forEach((combo) => {
+        combosWithElements.push(combo.map((id) => orbIdToOrbMap[id].element))
+      })
+      this.combos = this.combos.concat(combosWithElements)
 
       // Remove combos from the board
       this.removeCombos(joinedCombos, () => {
@@ -217,9 +235,9 @@ export class Board {
     } else {
       // Turn ended, no more combos to process
       this.processingCombos = false
+      this.comboCounter.clear(true, true)
       this.turnEndListener.forEach((fn) => fn(this.combos))
       this.combos = [] // clear combos for next turn
-      // console.log('Handle turn end!');
     }
   }
 
@@ -293,7 +311,7 @@ export class Board {
           },
           id: Phaser.Utils.String.UUID(),
           radius: Board.CELL_SIZE / 2 - 10,
-          color: Phaser.Utils.Array.GetRandom(Constants.ORB_COLORS),
+          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
           board: this,
           currCell: {
             row: slot.row,
@@ -334,14 +352,57 @@ export class Board {
     })
   }
 
-  removeCombos(combos: string[][], onOrbsRemovedCb: Function) {
-    const orbIdToOrbMapping = {}
-    for (let i = 0; i < this.orbs.length; i++) {
-      for (let j = 0; j < this.orbs[i].length; j++) {
-        const orb = this.orbs[i][j]
-        orbIdToOrbMapping[orb!.id] = orb
-      }
+  addComboCounterText(combo: Orb[]) {
+    const firstOrb = combo[0]
+    const lastOrb = combo[combo.length - 1]
+    const midPoint = {
+      x: (firstOrb.sprite.x + lastOrb.sprite.x) / 2,
+      y: (firstOrb.sprite.y + lastOrb.sprite.y) / 2,
     }
+
+    const comboCounterText = this.scene.add.text(
+      midPoint.x,
+      midPoint.y,
+      `Combo ${this.comboCounter.children.entries.length + 1}`,
+      {
+        fontSize: '15px',
+        color: 'white',
+      }
+    )
+    // Horizontal combo
+    if (firstOrb.sprite.y == lastOrb.sprite.y) {
+      comboCounterText.setOrigin(0.5, 0.5)
+      comboCounterText.setPosition(
+        midPoint.x - comboCounterText.displayWidth / 2,
+        midPoint.y - comboCounterText.displayHeight / 2
+      )
+    }
+
+    // Vertical combo
+    else if (firstOrb.sprite.x == lastOrb.sprite.x) {
+      comboCounterText.setOrigin(0, 0.5)
+      comboCounterText.setPosition(
+        midPoint.x - comboCounterText.displayWidth / 2,
+        midPoint.y - comboCounterText.displayHeight / 2 - Board.CELL_SIZE / 2
+      )
+    }
+
+    // Irregular shaped combo
+    else {
+      const middleOrb = combo[Math.floor(combo.length / 2)]
+      comboCounterText
+        .setOrigin(0.5, 0.5)
+        .setPosition(
+          middleOrb.sprite.x - comboCounterText.displayWidth / 2,
+          middleOrb.sprite.y - comboCounterText.displayHeight / 2
+        )
+    }
+
+    this.comboCounter.add(comboCounterText)
+  }
+
+  removeCombos(combos: string[][], onOrbsRemovedCb: Function) {
+    const orbIdToOrbMapping = this.orbIdToOrbMap
     const removeOrbs = (comboToRemoveIndex: number) => {
       if (comboToRemoveIndex === combos.length) {
         onOrbsRemovedCb()
@@ -350,6 +411,10 @@ export class Board {
       const orbs: Orb[] = combos[comboToRemoveIndex].map(
         (orbId) => orbIdToOrbMapping[orbId]
       )
+
+      this.addComboCounterText(orbs)
+
+      // Remove combo orbs
       const orbSprites = orbs.map((orb: Orb) => orb.sprite)
       this.scene.tweens.add({
         duration: 500,

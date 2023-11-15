@@ -8,7 +8,7 @@ export interface OrbConfig {
     y: number
   }
   radius: number
-  color: string
+  element: string
   board: Board
   currCell?: {
     row: number
@@ -20,7 +20,7 @@ export class Orb {
   public id: string
   private scene: Game
   private board: Board
-  public color: string
+  public element: string
   public sprite: Phaser.GameObjects.Sprite
   public currCell: {
     row: number
@@ -31,9 +31,9 @@ export class Orb {
     this.id = config.id
     this.scene = scene
     this.board = config.board
-    this.color = config.color
+    this.element = config.element
     this.sprite = this.scene.add
-      .sprite(config.position.x, config.position.y, `orb-${config.color}`)
+      .sprite(config.position.x, config.position.y, `orb-${config.element}`)
       .setOrigin(0.5, 0.5)
       .setScale(2)
       .setInteractive()
