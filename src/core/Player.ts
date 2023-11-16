@@ -3,7 +3,7 @@ import 'babel-polyfill'
 import { Game } from '~/scenes/Game'
 import { Healthbar } from './Healthbar'
 import { Board } from './Board'
-import { Elements } from '~/utils/Constants'
+import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
 
 export class Player {
@@ -55,7 +55,7 @@ export class Player {
 
   handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
     const elements = Object.keys(dmgPerElement).filter(
-      (element) => element !== Elements.HEALTH
+      (element) => element !== Elements.HEALTH && element !== Elements.NONE
     )
     const shootElementalBlast = (index: number) => {
       if (index == elements.length) {
@@ -92,8 +92,8 @@ export class Player {
             this.game,
             this.game.enemy.sprite.x,
             this.game.enemy.sprite.y,
-            'white',
-            '20px'
+            Constants.ELEMENT_TO_COLOR[element],
+            '25px'
           )
           this.game.enemy.damage(dmgPerElement[element])
           shootElementalBlast(index + 1)

@@ -5,6 +5,7 @@ export enum Elements {
   LIGHT = 'light',
   DARK = 'dark',
   HEALTH = 'health',
+  NONE = 'none',
 }
 
 export class Constants {
@@ -17,5 +18,14 @@ export class Constants {
     player: 400,
     ui: 500,
     top: 600,
+  }
+
+  public static ELEMENT_TO_COLOR = {
+    [Elements.FIRE]: '#dc1600',
+    [Elements.WATER]: '#1940cf',
+    [Elements.GRASS]: '#109e00',
+    [Elements.LIGHT]: '#fff415',
+    [Elements.DARK]: '#6c0b93',
+    [Elements.HEALTH]: '#ff169d',
   }
 }

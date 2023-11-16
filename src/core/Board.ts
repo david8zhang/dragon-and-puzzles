@@ -1,4 +1,4 @@
-import { Constants, Elements } from '~/utils/Constants'
+import { Elements } from '~/utils/Constants'
 import { Orb } from './Orb'
 import { Game } from '~/scenes/Game'
 
@@ -48,6 +48,8 @@ export class Board {
   setupGrid() {
     let xPos = Board.GRID_TOP_LEFT_X
     let yPos = Board.GRID_TOP_LEFT_Y
+    const elementsForLevel = this.getElementsForLevel()
+
     for (let i = 0; i < Board.BOARD_HEIGHT; i++) {
       const orbRow: Orb[] = []
       const gridRow: Phaser.Geom.Rectangle[] = []
@@ -66,7 +68,7 @@ export class Board {
             y: cell.centerY,
           },
           radius: Board.CELL_SIZE / 2 - 10,
-          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
+          element: Phaser.Utils.Array.GetRandom(elementsForLevel),
           board: this,
         })
         orbRow[j] = orb
@@ -77,6 +79,37 @@ export class Board {
       this.orbs[i] = orbRow
       this.grid[i] = gridRow
     }
+  }
+
+  getElementsForLevel() {
+    const elementsInEachLevel = [
+      [Elements.NONE, Elements.HEALTH, Elements.FIRE],
+      [Elements.NONE, Elements.HEALTH, Elements.FIRE, Elements.GRASS],
+      [
+        Elements.NONE,
+        Elements.HEALTH,
+        Elements.FIRE,
+        Elements.GRASS,
+        Elements.WATER,
+      ],
+      [
+        Elements.NONE,
+        Elements.HEALTH,
+        Elements.FIRE,
+        Elements.GRASS,
+        Elements.WATER,
+        Elements.LIGHT,
+      ],
+      [
+        Elements.HEALTH,
+        Elements.FIRE,
+        Elements.GRASS,
+        Elements.WATER,
+        Elements.LIGHT,
+        Elements.DARK,
+      ],
+    ]
+    return elementsInEachLevel[this.scene.level]
   }
 
   getCellAtRowCol(row: number, col: number) {
@@ -298,7 +331,8 @@ export class Board {
     }
 
     let timeUntilLastOrbFalls = 0
-    allEmptySlots.forEach((column, index) => {
+    const elementsForLevel = this.getElementsForLevel()
+    allEmptySlots.forEach((column) => {
       let yPos = Board.GRID_TOP_LEFT_Y - 25
       column.forEach((slot) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
@@ -309,7 +343,7 @@ export class Board {
           },
           id: Phaser.Utils.String.UUID(),
           radius: Board.CELL_SIZE / 2 - 10,
-          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
+          element: Phaser.Utils.Array.GetRandom(elementsForLevel),
           board: this,
           currCell: {
             row: slot.row,

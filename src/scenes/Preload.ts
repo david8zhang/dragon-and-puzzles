@@ -7,12 +7,15 @@ export class Preload extends Phaser.Scene {
     this.load.image('green-dragon-debug', 'dragons/flygon.png')
     this.load.image('fire-dragon-debug', 'dragons/charizard.png')
     this.load.image('water-dragon-debug', 'dragons/gyarados.png')
+    this.load.image('light-dragon-debug', 'dragons/dragonite.png')
+    this.load.image('dark-dragon-debug', 'dragons/hydreigon.png')
+    this.load.image('rainbow-debug', 'dragons/rayquaza.png')
 
     this.load.image('heart', 'ui/heart.png')
     this.load.image('gameover', 'ui/gameover.png')
     this.load.image('background', 'ui/bg.png')
 
-    this.load.image('orb-nothing', 'orbs/orb-nothing.png')
+    this.load.image('orb-none', 'orbs/orb-none.png')
     this.load.image('orb-fire', 'orbs/orb-fire.png')
     this.load.image('orb-water', 'orbs/orb-water.png')
     this.load.image('orb-grass', 'orbs/orb-grass.png')

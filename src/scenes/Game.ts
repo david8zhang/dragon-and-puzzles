@@ -21,8 +21,8 @@ export class Game extends Phaser.Scene {
   }
 
   create() {
-    this.board = new Board(this)
     this.level = this.level ?? 0
+    this.board = new Board(this)
 
     this.player = new Player(this, this.board)
     this.enemy = new Enemy(this, ENEMIES[this.level])

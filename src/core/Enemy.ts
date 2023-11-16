@@ -2,7 +2,7 @@ import 'babel-polyfill'
 
 import { Game } from '~/scenes/Game'
 import { Healthbar } from './Healthbar'
-import { Elements } from '~/utils/Constants'
+import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
 
 export interface EnemyConfig {
@@ -13,14 +13,29 @@ export interface EnemyConfig {
 
 export const ENEMIES: EnemyConfig[] = [
   {
-    maxHealth: 10,
+    maxHealth: 100,
     spriteName: 'green-dragon-debug',
     element: Elements.GRASS,
   },
   {
-    maxHealth: 150,
+    maxHealth: 100,
     spriteName: 'water-dragon-debug',
     element: Elements.WATER,
+  },
+  {
+    maxHealth: 100,
+    spriteName: 'light-dragon-debug',
+    element: Elements.LIGHT,
+  },
+  {
+    maxHealth: 100,
+    spriteName: 'dark-dragon-debug',
+    element: Elements.DARK,
+  },
+  {
+    maxHealth: 100,
+    spriteName: 'rainbow-debug',
+    element: Elements.NONE,
   },
 ]
 
@@ -158,8 +173,8 @@ export class Enemy {
             this.game,
             this.game.player.sprite.x,
             this.game.player.sprite.y,
-            'white',
-            '20px'
+            Constants.ELEMENT_TO_COLOR[this.element],
+            '25px'
           )
           this.endTurn()
         },
