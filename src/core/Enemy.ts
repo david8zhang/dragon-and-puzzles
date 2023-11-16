@@ -64,12 +64,14 @@ export class Enemy {
       .text(
         Enemy.POSITION.x,
         Enemy.POSITION.y - 115,
-        `Attacks in ${this.turnsUntilAttack} turns`
+        `Attacks in ${this.turnsUntilAttack} turn${
+          this.turnsUntilAttack == 1 ? '' : 's'
+        }`
       )
       .setStyle({
         fontSize: '20px',
       })
-      .setStroke('#000000', 10)
+      .setStroke('#000000', 5)
     // Center align text
     this.nextMoveText.setPosition(
       this.nextMoveText.x - this.nextMoveText.displayWidth / 2,
@@ -132,8 +134,6 @@ export class Enemy {
     if (this.health <= 0) return
 
     this.turnsUntilAttack--
-    this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turns`
-
     if (this.turnsUntilAttack === 0) {
       const attackOrb = this.game.add
         .sprite(this.sprite.x, this.sprite.y, `orb-${this.element}`)
@@ -171,7 +171,9 @@ export class Enemy {
 
   endTurn() {
     this.game.time.delayedCall(500, () => {
-      this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turns`
+      this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turn${
+        this.turnsUntilAttack == 1 ? '' : 's'
+      }`
       this.turnEndListener.forEach((fn) => fn())
     })
   }

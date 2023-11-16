@@ -31,7 +31,6 @@ export class Board {
   constructor(scene: Game) {
     this.scene = scene
     this.graphics = this.scene.add.graphics()
-    this.graphics.lineStyle(1, 0x00ff00)
     this.setupGrid()
 
     this.overlay = this.scene.add.rectangle(
@@ -72,7 +71,6 @@ export class Board {
         })
         orbRow[j] = orb
         gridRow[j] = cell
-        this.graphics.strokeRectShape(cell)
         xPos += Board.CELL_SIZE
       }
       yPos += Board.CELL_SIZE
@@ -302,7 +300,7 @@ export class Board {
     let timeUntilLastOrbFalls = 0
     allEmptySlots.forEach((column, index) => {
       let yPos = Board.GRID_TOP_LEFT_Y - 25
-      column.forEach((slot, slotIndex) => {
+      column.forEach((slot) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
         const newOrb = new Orb(this.scene, {
           position: {

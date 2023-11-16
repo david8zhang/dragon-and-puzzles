@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { Board } from '~/core/Board'
 import { ENEMIES, Enemy } from '~/core/Enemy'
 import { Player } from '~/core/Player'
+import { Constants } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
   public board!: Board
@@ -28,6 +29,13 @@ export class Game extends Phaser.Scene {
 
     this.enemy.addAttackListener((dmgAmount) => this.player.damage(dmgAmount))
     this.enemy.addTurnEndListener(() => this.board.setDisabled(false))
+
+    // Add BG image
+    this.add
+      .image(0, 0, 'background')
+      .setDisplaySize(Constants.WINDOW_WIDTH, 375)
+      .setOrigin(0, 0)
+      .setDepth(this.player.sprite.depth - 1)
 
     this.enemy.addOnDiedListener(() => {
       if (this.level === ENEMIES.length - 1) {

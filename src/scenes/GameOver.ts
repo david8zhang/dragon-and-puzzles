@@ -9,11 +9,7 @@ export default class GameOver extends Phaser.Scene {
     super('gameover')
   }
 
-  init(data): void {
-    // if (data.score) {
-    // 	this.score = data.score;
-    // }
-  }
+  init(data): void {}
 
   create(): void {
     this.cameras.main.fadeIn(2000, 1, 1, 1)
@@ -25,7 +21,6 @@ export default class GameOver extends Phaser.Scene {
     const domElementsContainer = this.add.container(0, 0)
     const restartButton = button('Play Again', {
       fontSize: '20px',
-      fontFamily: 'VCR',
       color: 'black',
       width: 150,
       height: 40,

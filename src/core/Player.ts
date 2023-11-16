@@ -101,6 +101,21 @@ export class Player {
       })
     }
     shootElementalBlast(0)
+
+    // Handle heals
+    if (dmgPerElement[Elements.HEALTH] != undefined) {
+      const healAmount = dmgPerElement[Elements.HEALTH]
+      this.health = Math.min(this.maxHealth, this.health + healAmount)
+      this.healthBar.draw()
+      UINumber.createNumber(
+        `+${healAmount}`,
+        this.game,
+        this.sprite.x,
+        this.sprite.y,
+        'white',
+        '20px'
+      )
+    }
   }
 
   damage(amount: number) {
