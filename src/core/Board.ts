@@ -353,51 +353,48 @@ export class Board {
   }
 
   addComboCounterText(combo: Orb[]) {
-    const firstOrb = combo[0]
-    const lastOrb = combo[combo.length - 1]
-    const midPoint = {
-      x: (firstOrb.sprite.x + lastOrb.sprite.x) / 2,
-      y: (firstOrb.sprite.y + lastOrb.sprite.y) / 2,
-    }
+    const orbsSortedByPosition = combo.sort((a, b) => {
+      const aPos = a.sprite.x + a.sprite.y
+      const bPos = b.sprite.x + b.sprite.y
+      return aPos - bPos
+    })
 
-    const comboCounterText = this.scene.add.text(
-      midPoint.x,
-      midPoint.y,
-      `Combo ${this.comboCounter.children.entries.length + 1}`,
-      {
-        fontSize: '15px',
-        color: 'white',
+    const middleOrb =
+      orbsSortedByPosition[Math.floor(orbsSortedByPosition.length / 2)]
+    let midPoint = { x: 0, y: 0 }
+
+    if (orbsSortedByPosition.length % 2 == 0) {
+      const minusOne =
+        orbsSortedByPosition[Math.floor(orbsSortedByPosition.length / 2) - 1]
+      const plusOne =
+        orbsSortedByPosition[Math.floor(orbsSortedByPosition.length / 2)]
+      midPoint = {
+        x: (minusOne.sprite.x + plusOne.sprite.x) / 2,
+        y: (minusOne.sprite.y + plusOne.sprite.y) / 2,
       }
+    } else {
+      midPoint = {
+        x: middleOrb.sprite.x,
+        y: middleOrb.sprite.y,
+      }
+    }
+
+    const comboCounterText = this.scene.add
+      .text(
+        midPoint.x,
+        midPoint.y,
+        `Combo ${this.comboCounter.children.entries.length + 1}`,
+        {
+          fontSize: '18px',
+          color: 'white',
+        }
+      )
+      .setDepth(1000)
+      .setStroke('black', 3)
+    comboCounterText.setPosition(
+      midPoint.x - comboCounterText.displayWidth / 2,
+      midPoint.y - comboCounterText.displayHeight / 2
     )
-    // Horizontal combo
-    if (firstOrb.sprite.y == lastOrb.sprite.y) {
-      comboCounterText.setOrigin(0.5, 0.5)
-      comboCounterText.setPosition(
-        midPoint.x - comboCounterText.displayWidth / 2,
-        midPoint.y - comboCounterText.displayHeight / 2
-      )
-    }
-
-    // Vertical combo
-    else if (firstOrb.sprite.x == lastOrb.sprite.x) {
-      comboCounterText.setOrigin(0, 0.5)
-      comboCounterText.setPosition(
-        midPoint.x - comboCounterText.displayWidth / 2,
-        midPoint.y - comboCounterText.displayHeight / 2 - Board.CELL_SIZE / 2
-      )
-    }
-
-    // Irregular shaped combo
-    else {
-      const middleOrb = combo[Math.floor(combo.length / 2)]
-      comboCounterText
-        .setOrigin(0.5, 0.5)
-        .setPosition(
-          middleOrb.sprite.x - comboCounterText.displayWidth / 2,
-          middleOrb.sprite.y - comboCounterText.displayHeight / 2
-        )
-    }
-
     this.comboCounter.add(comboCounterText)
   }
 

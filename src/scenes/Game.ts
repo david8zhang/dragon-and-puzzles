@@ -1,9 +1,7 @@
 import Phaser from 'phaser'
 import { Board } from '~/core/Board'
-import { ENEMIES, Enemy, EnemyConfig } from '~/core/Enemy'
+import { ENEMIES, Enemy } from '~/core/Enemy'
 import { Player } from '~/core/Player'
-import { UINumber } from '~/core/UINumber'
-import { Elements } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
   public board!: Board
@@ -32,7 +30,6 @@ export class Game extends Phaser.Scene {
     this.enemy.addTurnEndListener(() => this.board.setDisabled(false))
 
     this.enemy.addOnDiedListener(() => {
-      console.log('enemy died, next level: ', this.level + 1)
       if (this.level === ENEMIES.length - 1) {
         this.game.scene.start('gameover')
       } else {

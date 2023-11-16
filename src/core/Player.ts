@@ -44,7 +44,7 @@ export class Player {
         // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
         position: {
           x: 300,
-          y: this.sprite.y + 25,
+          y: this.sprite.y + 50,
         },
         length: 200,
         width: 15,
@@ -59,7 +59,9 @@ export class Player {
     )
     const shootElementalBlast = (index: number) => {
       if (index == elements.length) {
-        this.game.enemy.takeTurn()
+        this.game.time.delayedCall(500, () => {
+          this.game.enemy.takeTurn()
+        })
         return
       }
       const element = elements[index]

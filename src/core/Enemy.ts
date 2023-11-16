@@ -2,20 +2,25 @@ import 'babel-polyfill'
 
 import { Game } from '~/scenes/Game'
 import { Healthbar } from './Healthbar'
+import { Elements } from '~/utils/Constants'
+import { UINumber } from './UINumber'
 
 export interface EnemyConfig {
   maxHealth: number
   spriteName: string
+  element: Elements
 }
 
 export const ENEMIES: EnemyConfig[] = [
   {
     maxHealth: 100,
     spriteName: 'green-dragon-debug',
+    element: Elements.GRASS,
   },
   {
     maxHealth: 150,
     spriteName: 'water-dragon-debug',
+    element: Elements.WATER,
   },
 ]
 
@@ -29,6 +34,7 @@ export class Enemy {
   public health: number
   public healthBar!: Healthbar
   public sprite: Phaser.GameObjects.Sprite
+  public element: Elements
 
   private game: Game
   private turnsUntilAttack: number = 1
@@ -43,6 +49,7 @@ export class Enemy {
     // Set up health
     this.maxHealth = config.maxHealth
     this.health = this.maxHealth
+    this.element = config.element
     this.setupHealthbar()
 
     // Set up sprite
@@ -116,11 +123,7 @@ export class Enemy {
   }
 
   damage(amount: number): void {
-    this.health -= amount
-    if (this.health <= 0) {
-      this.health = 0
-      this.onDiedListener.forEach((fn) => fn())
-    }
+    this.health = Math.max(0, this.health - amount)
     this.healthBar.draw()
   }
 
@@ -130,16 +133,50 @@ export class Enemy {
 
     this.turnsUntilAttack--
     this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turns`
-    // TODO: add attack animations
-    await new Promise((resolve) => setTimeout(resolve, 1000)) // emulating attack animation
 
     if (this.turnsUntilAttack === 0) {
-      this.attackListener.forEach((fn) => fn(10)) // deal 10 damage
-      this.turnsUntilAttack = Math.floor(Math.random() * 3 + 1)
+      const attackOrb = this.game.add
+        .sprite(this.sprite.x, this.sprite.y, `orb-${this.element}`)
+        .setDepth(1000)
+      this.game.tweens.add({
+        targets: [attackOrb],
+        duration: 500,
+        x: {
+          from: this.sprite.x,
+          to: this.game.player.sprite.x,
+        },
+        y: {
+          from: this.sprite.y,
+          to: this.game.player.sprite.y,
+        },
+        onComplete: () => {
+          attackOrb.destroy()
+          this.attackListener.forEach((fn) => fn(10)) // deal 10 damage
+          this.turnsUntilAttack = Math.floor(Math.random() * 3 + 1)
+          UINumber.createNumber(
+            `${10}`,
+            this.game,
+            this.game.player.sprite.x,
+            this.game.player.sprite.y,
+            'white',
+            '20px'
+          )
+          this.endTurn()
+        },
+      })
+    } else {
+      this.endTurn()
     }
+  }
 
-    this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turns`
-    this.turnEndListener.forEach((fn) => fn())
+  endTurn() {
+    this.game.time.delayedCall(500, () => {
+      this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turns`
+      this.turnEndListener.forEach((fn) => fn())
+      if (this.health == 0) {
+        this.onDiedListener.forEach((fn) => fn())
+      }
+    })
   }
 
   addAttackListener(listener: (damage: number) => void) {
