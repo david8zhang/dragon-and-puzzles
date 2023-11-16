@@ -13,7 +13,7 @@ export interface EnemyConfig {
 
 export const ENEMIES: EnemyConfig[] = [
   {
-    maxHealth: 100,
+    maxHealth: 10,
     spriteName: 'green-dragon-debug',
     element: Elements.GRASS,
   },
@@ -41,7 +41,7 @@ export class Enemy {
   private nextMoveText: Phaser.GameObjects.Text
   private attackListener: Array<(damage: number) => void> = []
   private turnEndListener: Array<() => void> = []
-  private onDiedListener: Array<() => void> = []
+  public onDiedListener: Array<() => void> = []
 
   constructor(game: Game, config: EnemyConfig) {
     this.game = game
@@ -173,9 +173,6 @@ export class Enemy {
     this.game.time.delayedCall(500, () => {
       this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turns`
       this.turnEndListener.forEach((fn) => fn())
-      if (this.health == 0) {
-        this.onDiedListener.forEach((fn) => fn())
-      }
     })
   }
 

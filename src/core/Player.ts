@@ -60,7 +60,11 @@ export class Player {
     const shootElementalBlast = (index: number) => {
       if (index == elements.length) {
         this.game.time.delayedCall(500, () => {
-          this.game.enemy.takeTurn()
+          if (this.game.enemy.health == 0) {
+            this.game.enemy.onDiedListener.forEach((fn) => fn())
+          } else {
+            this.game.enemy.takeTurn()
+          }
         })
         return
       }
