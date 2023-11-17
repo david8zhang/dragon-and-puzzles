@@ -1,4 +1,4 @@
-import { Elements } from '~/utils/Constants'
+import { Constants, Elements } from '~/utils/Constants'
 import { Orb } from './Orb'
 import { Game } from '~/scenes/Game'
 
@@ -21,7 +21,7 @@ export class Board {
   private scene: Game
   private grid: Phaser.Geom.Rectangle[][] = []
   private orbs: (Orb | null)[][] = []
-  private graphics: Phaser.GameObjects.Graphics
+  private boardPanels: Phaser.GameObjects.Group
   private overlay: Phaser.GameObjects.Rectangle
 
   private combos: string[][] = [] // Total combos for the turn
@@ -30,7 +30,7 @@ export class Board {
 
   constructor(scene: Game) {
     this.scene = scene
-    this.graphics = this.scene.add.graphics()
+    this.boardPanels = this.scene.add.group()
     this.setupGrid()
 
     this.overlay = this.scene.add.rectangle(
@@ -61,6 +61,22 @@ export class Board {
           Board.CELL_SIZE,
           Board.CELL_SIZE
         )
+
+        const boardPanel = this.scene.add
+          .rectangle(
+            xPos,
+            yPos,
+            Board.CELL_SIZE,
+            Board.CELL_SIZE,
+            (i + j) % 2 == 0 ? 0x888888 : 0x444444
+          )
+          .setOrigin(0, 0)
+          .setAlpha(0.5)
+          .setDepth(Constants.SORT_ORDER.background)
+          .setStrokeStyle(2, 0x555555)
+
+        this.boardPanels.add(boardPanel)
+
         const orb = new Orb(this.scene, {
           id: Phaser.Utils.String.UUID(),
           position: {

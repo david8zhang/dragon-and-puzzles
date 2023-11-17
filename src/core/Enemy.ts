@@ -32,13 +32,13 @@ export const ENEMIES: EnemyConfig[] = [
     baseDamage: 20,
   },
   {
-    maxHealth: 125,
+    maxHealth: 120,
     spriteName: 'dark-dragon-debug',
     element: Elements.DARK,
     baseDamage: 20,
   },
   {
-    maxHealth: 200,
+    maxHealth: 150,
     spriteName: 'rainbow-debug',
     element: Elements.ALL,
     baseDamage: 25,
@@ -86,7 +86,7 @@ export class Enemy {
     this.nextMoveText = this.game.add
       .text(
         Enemy.POSITION.x,
-        Enemy.POSITION.y - 115,
+        Enemy.POSITION.y - 110,
         `Attacks in ${this.turnsUntilAttack} turn${
           this.turnsUntilAttack == 1 ? '' : 's'
         }`

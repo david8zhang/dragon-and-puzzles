@@ -1,5 +1,6 @@
 import { Game } from '~/scenes/Game'
 import { Board } from './Board'
+import { Constants } from '~/utils/Constants'
 
 export interface OrbConfig {
   id: string
@@ -36,6 +37,7 @@ export class Orb {
       .sprite(config.position.x, config.position.y, `orb-${config.element}`)
       .setOrigin(0.5, 0.5)
       .setScale(2)
+      .setDepth(Constants.SORT_ORDER.ui)
       .setInteractive()
 
     if (config.currCell) {
