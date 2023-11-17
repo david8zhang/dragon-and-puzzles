@@ -6,7 +6,7 @@ import { Constants } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
   public board!: Board
-  public level: number = 0
+  public level: number = 4
   public player!: Player
   public enemy!: Enemy
 
@@ -45,7 +45,7 @@ export class Game extends Phaser.Scene {
 
     this.enemy.addOnDiedListener(() => {
       if (this.level === ENEMIES.length - 1) {
-        this.game.scene.start('gameover')
+        this.game.scene.start('victory')
       } else {
         this.game.scene.start('game', { level: this.level + 1 })
       }

@@ -14,13 +14,13 @@ export interface EnemyConfig {
 
 export const ENEMIES: EnemyConfig[] = [
   {
-    maxHealth: 10,
+    maxHealth: 50,
     spriteName: 'green-dragon-debug',
     element: Elements.GRASS,
     baseDamage: 10,
   },
   {
-    maxHealth: 100,
+    maxHealth: 75,
     spriteName: 'water-dragon-debug',
     element: Elements.WATER,
     baseDamage: 15,
@@ -32,16 +32,16 @@ export const ENEMIES: EnemyConfig[] = [
     baseDamage: 20,
   },
   {
-    maxHealth: 100,
+    maxHealth: 125,
     spriteName: 'dark-dragon-debug',
     element: Elements.DARK,
-    baseDamage: 25,
+    baseDamage: 20,
   },
   {
-    maxHealth: 100,
+    maxHealth: 200,
     spriteName: 'rainbow-debug',
-    element: Elements.NONE,
-    baseDamage: 30,
+    element: Elements.ALL,
+    baseDamage: 25,
   },
 ]
 
@@ -55,8 +55,9 @@ export class Enemy {
   public health: number
   public healthBar!: Healthbar
   public sprite: Phaser.GameObjects.Sprite
-  public element: Elements
+  public element!: Elements
 
+  private isRainbow: boolean = false
   private game: Game
   private turnsUntilAttack: number = 1
   private baseDamage: number = 0
@@ -71,7 +72,6 @@ export class Enemy {
     // Set up health
     this.maxHealth = config.maxHealth
     this.health = this.maxHealth
-    this.element = config.element
     this.baseDamage = config.baseDamage
     this.setupHealthbar()
 
@@ -101,6 +101,61 @@ export class Enemy {
       this.nextMoveText.y
     )
     this.animateNextMoveText()
+
+    // If this is the rainbow dragon, pick a random element and change the tint
+    if (config.element === Elements.ALL) {
+      this.isRainbow = true
+      this.morphToRandomElement()
+    } else {
+      this.element = config.element
+    }
+  }
+
+  morphToRandomElement() {
+    const eligibleElements = [
+      Elements.FIRE,
+      Elements.WATER,
+      Elements.DARK,
+      Elements.LIGHT,
+      Elements.GRASS,
+    ]
+
+    const currColor = Constants.ELEMENT_TO_COLOR[this.element]
+    const randomElement = Phaser.Utils.Array.GetRandom(eligibleElements)
+    const newColor = Constants.ELEMENT_TO_COLOR[randomElement]
+
+    const oldColorObj = Phaser.Display.Color.ValueToColor(
+      Number.parseInt(`0x${currColor}`, 16)
+    )
+    const newColorObj = Phaser.Display.Color.ValueToColor(
+      Number.parseInt(`0x${newColor}`, 16)
+    )
+
+    this.game.tweens.addCounter({
+      from: 0,
+      to: 100,
+      duration: 500,
+      ease: Phaser.Math.Easing.Sine.InOut,
+      onUpdate: (tween) => {
+        const value = tween.getValue()
+        const colorObject = Phaser.Display.Color.Interpolate.ColorWithColor(
+          oldColorObj,
+          newColorObj,
+          100,
+          value
+        )
+        this.sprite.setTint(
+          Phaser.Display.Color.GetColor(
+            colorObject.r,
+            colorObject.g,
+            colorObject.b
+          )
+        )
+      },
+      onComplete: () => {
+        this.element = randomElement
+      },
+    })
   }
 
   animateNextMoveText() {
@@ -224,6 +279,12 @@ export class Enemy {
             Constants.ELEMENT_TO_COLOR[this.element],
             '25px'
           )
+
+          // If the enemy is the rainbow dragon, change the typing every time it attacks
+          if (this.isRainbow) {
+            this.morphToRandomElement()
+          }
+
           this.endTurn()
         },
       })

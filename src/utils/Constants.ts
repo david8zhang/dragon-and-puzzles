@@ -6,6 +6,7 @@ export enum Elements {
   DARK = 'dark',
   HEALTH = 'health',
   NONE = 'none',
+  ALL = 'all',
 }
 
 export class Constants {
@@ -21,12 +22,13 @@ export class Constants {
   }
 
   public static ELEMENT_TO_COLOR = {
-    [Elements.FIRE]: '#dc1600',
-    [Elements.WATER]: '#1940cf',
-    [Elements.GRASS]: '#109e00',
-    [Elements.LIGHT]: '#fff415',
-    [Elements.DARK]: '#6c0b93',
-    [Elements.HEALTH]: '#ff169d',
+    [Elements.FIRE]: 'dc1600',
+    [Elements.WATER]: '1940cf',
+    [Elements.GRASS]: '109e00',
+    [Elements.LIGHT]: 'fff415',
+    [Elements.DARK]: '6c0b93',
+    [Elements.HEALTH]: 'ff169d',
+    [Elements.ALL]: 'ffffff',
   }
 
   public static WEAKNESS_MAP = {

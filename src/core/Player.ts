@@ -97,7 +97,7 @@ export class Player {
             this.game,
             this.game.enemy.sprite.x,
             this.game.enemy.sprite.y,
-            Constants.ELEMENT_TO_COLOR[element],
+            `#${Constants.ELEMENT_TO_COLOR[element]}`,
             hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
           )
           this.game.enemy.damage(dmgPerElement[element])
