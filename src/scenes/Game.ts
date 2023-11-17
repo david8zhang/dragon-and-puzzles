@@ -6,7 +6,7 @@ import { Constants } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
   public board!: Board
-  public level!: number
+  public level: number = 0
   public player!: Player
   public enemy!: Enemy
 
@@ -26,6 +26,12 @@ export class Game extends Phaser.Scene {
 
     this.player = new Player(this, this.board)
     this.enemy = new Enemy(this, ENEMIES[this.level])
+
+    this.player.addTurnEndListener(() => {
+      this.time.delayedCall(500, () => {
+        this.enemy.takeTurn()
+      })
+    })
 
     this.enemy.addAttackListener((dmgAmount) => this.player.damage(dmgAmount))
     this.enemy.addTurnEndListener(() => this.board.setDisabled(false))

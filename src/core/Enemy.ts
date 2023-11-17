@@ -14,7 +14,7 @@ export interface EnemyConfig {
 
 export const ENEMIES: EnemyConfig[] = [
   {
-    maxHealth: 100,
+    maxHealth: 10,
     spriteName: 'green-dragon-debug',
     element: Elements.GRASS,
     baseDamage: 10,
@@ -154,7 +154,7 @@ export class Enemy {
 
   calculateDamageWithResistances() {
     if (this.element == Elements.DARK) {
-      return this.baseDamage * 2
+      return this.baseDamage * 1.75 // Dark deals more damage
     } else {
       const playerElement = this.game.player.element
       const playerWeaknesses = Constants.WEAKNESS_MAP[playerElement]
@@ -169,9 +169,31 @@ export class Enemy {
     }
   }
 
+  handleDeath() {
+    this.game.tweens.add({
+      targets: this.sprite,
+      onStart: () => {
+        this.nextMoveText.setVisible(false)
+      },
+      alpha: {
+        from: 1,
+        to: 0,
+      },
+      duration: 1000,
+      onComplete: () => {
+        this.game.time.delayedCall(500, () => {
+          this.onDiedListener.forEach((fn) => fn())
+        })
+      },
+    })
+  }
+
   async takeTurn(): Promise<void> {
     // Enemy already dead, no need to take turn
-    if (this.health <= 0) return
+    if (this.health <= 0) {
+      this.handleDeath()
+      return
+    }
 
     this.turnsUntilAttack--
     if (this.turnsUntilAttack === 0) {

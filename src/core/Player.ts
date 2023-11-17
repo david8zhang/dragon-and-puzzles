@@ -29,6 +29,7 @@ export class Player {
       const damagePerElement = this.calculateComboDamage(combo)
       board.setDisabled(true)
       this.handlePlayerAttack(damagePerElement)
+      this.attackListener.forEach((fn) => fn(damagePerElement))
     })
 
     // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
@@ -60,13 +61,7 @@ export class Player {
     )
     const shootElementalBlast = (index: number) => {
       if (index == elements.length) {
-        this.game.time.delayedCall(500, () => {
-          if (this.game.enemy.health == 0) {
-            this.game.enemy.onDiedListener.forEach((fn) => fn())
-          } else {
-            this.game.enemy.takeTurn()
-          }
-        })
+        this.turnEndListener.forEach((fn) => fn())
         return
       }
       const element = elements[index]
@@ -132,7 +127,6 @@ export class Player {
     this.health -= amount
     if (this.health <= 0) {
       this.health = 0
-      // TODO: game over
       this.game.scene.start('gameover')
     }
     this.healthBar.draw()
