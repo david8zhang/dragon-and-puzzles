@@ -1,4 +1,4 @@
-import { Constants } from '~/utils/Constants'
+import { Constants, Elements } from '~/utils/Constants'
 import { Orb } from './Orb'
 import { Game } from '~/scenes/Game'
 
@@ -12,7 +12,7 @@ export class Board {
   private static BOARD_HEIGHT = 5
   private static CELL_SIZE = 75
   private static GRID_TOP_LEFT_X = 75
-  private static GRID_TOP_LEFT_Y = 340
+  private static GRID_TOP_LEFT_Y = 400
 
   private processingCombos = false
   private disabled = false
@@ -26,11 +26,11 @@ export class Board {
 
   private combos: string[][] = [] // Total combos for the turn
   private turnEndListener: Array<(combos: string[][]) => void> = []
+  private comboCounter: Phaser.GameObjects.Group
 
   constructor(scene: Game) {
     this.scene = scene
     this.graphics = this.scene.add.graphics()
-    this.graphics.lineStyle(1, 0x00ff00)
     this.setupGrid()
 
     this.overlay = this.scene.add.rectangle(
@@ -42,6 +42,7 @@ export class Board {
       0.0
     )
     this.overlay.setDepth(1000)
+    this.comboCounter = this.scene.add.group()
   }
 
   setupGrid() {
@@ -65,12 +66,11 @@ export class Board {
             y: cell.centerY,
           },
           radius: Board.CELL_SIZE / 2 - 10,
-          color: Phaser.Utils.Array.GetRandom(Constants.ORB_COLORS),
+          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
           board: this,
         })
         orbRow[j] = orb
         gridRow[j] = cell
-        this.graphics.strokeRectShape(cell)
         xPos += Board.CELL_SIZE
       }
       yPos += Board.CELL_SIZE
@@ -151,7 +151,19 @@ export class Board {
     }
   }
 
+  get orbIdToOrbMap(): { [key: string]: Orb } {
+    const map = {}
+    for (let i = 0; i < this.orbs.length; i++) {
+      for (let j = 0; j < this.orbs[i].length; j++) {
+        const orb = this.orbs[i][j]!
+        map[orb.id] = orb
+      }
+    }
+    return map
+  }
+
   handleCombos() {
+    const orbIdToOrbMap = this.orbIdToOrbMap
     this.processingCombos = true
     // Check for all horizontal 3+ matches
     const horizontalCombos: string[][] = []
@@ -162,7 +174,7 @@ export class Board {
       longestHorizCombo = [prevOrb!.id]
       for (let i = 1; i < orbsInRow.length; i++) {
         const orb = orbsInRow[i]
-        if (orb!.color == prevOrb!.color) {
+        if (orb!.element == prevOrb!.element) {
           longestHorizCombo.push(orb!.id)
         } else {
           if (longestHorizCombo.length >= 3) {
@@ -188,7 +200,7 @@ export class Board {
           prevOrb = currOrb
           longestVerticalCombo = [prevOrb!.id]
         } else {
-          if (prevOrb.color == currOrb!.color) {
+          if (prevOrb.element == currOrb!.element) {
             longestVerticalCombo.push(currOrb!.id)
           } else {
             if (longestVerticalCombo.length >= 3) {
@@ -207,7 +219,11 @@ export class Board {
 
     if (joinedCombos.length > 0) {
       // Add combos to total combos for the turn
-      this.combos = this.combos.concat(joinedCombos)
+      const combosWithElements: string[][] = []
+      joinedCombos.forEach((combo) => {
+        combosWithElements.push(combo.map((id) => orbIdToOrbMap[id].element))
+      })
+      this.combos = this.combos.concat(combosWithElements)
 
       // Remove combos from the board
       this.removeCombos(joinedCombos, () => {
@@ -217,9 +233,9 @@ export class Board {
     } else {
       // Turn ended, no more combos to process
       this.processingCombos = false
+      this.comboCounter.clear(true, true)
       this.turnEndListener.forEach((fn) => fn(this.combos))
       this.combos = [] // clear combos for next turn
-      // console.log('Handle turn end!');
     }
   }
 
@@ -284,7 +300,7 @@ export class Board {
     let timeUntilLastOrbFalls = 0
     allEmptySlots.forEach((column, index) => {
       let yPos = Board.GRID_TOP_LEFT_Y - 25
-      column.forEach((slot, slotIndex) => {
+      column.forEach((slot) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
         const newOrb = new Orb(this.scene, {
           position: {
@@ -293,7 +309,7 @@ export class Board {
           },
           id: Phaser.Utils.String.UUID(),
           radius: Board.CELL_SIZE / 2 - 10,
-          color: Phaser.Utils.Array.GetRandom(Constants.ORB_COLORS),
+          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
           board: this,
           currCell: {
             row: slot.row,
@@ -334,14 +350,54 @@ export class Board {
     })
   }
 
-  removeCombos(combos: string[][], onOrbsRemovedCb: Function) {
-    const orbIdToOrbMapping = {}
-    for (let i = 0; i < this.orbs.length; i++) {
-      for (let j = 0; j < this.orbs[i].length; j++) {
-        const orb = this.orbs[i][j]
-        orbIdToOrbMapping[orb!.id] = orb
+  addComboCounterText(combo: Orb[]) {
+    const orbsSortedByPosition = combo.sort((a, b) => {
+      const aPos = a.sprite.x + a.sprite.y
+      const bPos = b.sprite.x + b.sprite.y
+      return aPos - bPos
+    })
+
+    const middleOrb =
+      orbsSortedByPosition[Math.floor(orbsSortedByPosition.length / 2)]
+    let midPoint = { x: 0, y: 0 }
+
+    if (orbsSortedByPosition.length % 2 == 0) {
+      const minusOne =
+        orbsSortedByPosition[Math.floor(orbsSortedByPosition.length / 2) - 1]
+      const plusOne =
+        orbsSortedByPosition[Math.floor(orbsSortedByPosition.length / 2)]
+      midPoint = {
+        x: (minusOne.sprite.x + plusOne.sprite.x) / 2,
+        y: (minusOne.sprite.y + plusOne.sprite.y) / 2,
+      }
+    } else {
+      midPoint = {
+        x: middleOrb.sprite.x,
+        y: middleOrb.sprite.y,
       }
     }
+
+    const comboCounterText = this.scene.add
+      .text(
+        midPoint.x,
+        midPoint.y,
+        `Combo ${this.comboCounter.children.entries.length + 1}`,
+        {
+          fontSize: '18px',
+          color: 'white',
+        }
+      )
+      .setDepth(1000)
+      .setStroke('black', 3)
+    comboCounterText.setPosition(
+      midPoint.x - comboCounterText.displayWidth / 2,
+      midPoint.y - comboCounterText.displayHeight / 2
+    )
+    this.comboCounter.add(comboCounterText)
+  }
+
+  removeCombos(combos: string[][], onOrbsRemovedCb: Function) {
+    const orbIdToOrbMapping = this.orbIdToOrbMap
     const removeOrbs = (comboToRemoveIndex: number) => {
       if (comboToRemoveIndex === combos.length) {
         onOrbsRemovedCb()
@@ -350,6 +406,10 @@ export class Board {
       const orbs: Orb[] = combos[comboToRemoveIndex].map(
         (orbId) => orbIdToOrbMapping[orbId]
       )
+
+      this.addComboCounterText(orbs)
+
+      // Remove combo orbs
       const orbSprites = orbs.map((orb: Orb) => orb.sprite)
       this.scene.tweens.add({
         duration: 500,

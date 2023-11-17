@@ -3,36 +3,38 @@ import 'babel-polyfill'
 import { Game } from '~/scenes/Game'
 import { Healthbar } from './Healthbar'
 import { Board } from './Board'
+import { Elements } from '~/utils/Constants'
+import { UINumber } from './UINumber'
 
 export class Player {
   private static readonly MAX_HEALTH: number = 100
 
   private game: Game
+  public sprite: Phaser.GameObjects.Sprite
 
   public readonly maxHealth: number = Player.MAX_HEALTH
   public health: number = this.maxHealth
 
   private healthBar!: Healthbar
-  private attackListener: Array<(damage: number) => void> = []
+  private attackListener: Array<
+    (damagePerElement: { [key in Elements]?: number }) => void
+  > = []
   private turnEndListener: Array<() => void> = []
 
   constructor(game: Game, board: Board) {
     this.game = game
-    this.setupHealthbar()
-
-    board.addTurnEndListener(async (combo) => {
+    board.addTurnEndListener((combo) => {
       // Calculate damage from combos and attack enemy
-      const damage = this.calculateComboDamage(combo)
+      const damagePerElement = this.calculateComboDamage(combo)
       board.setDisabled(true)
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // emulating attack animation TODO: add attack animation
-      this.attackListener.forEach((fn) => fn(damage))
-      this.turnEndListener.forEach((fn) => fn())
+      this.handlePlayerAttack(damagePerElement)
     })
 
     // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
-    const playerSprite = this.game.add
-      .sprite(175, 225, 'fire-dragon-debug')
+    this.sprite = this.game.add
+      .sprite(175, 275, 'fire-dragon-debug')
       .setScale(2.1)
+    this.setupHealthbar()
   }
 
   setupHealthbar() {
@@ -42,13 +44,78 @@ export class Player {
         // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
         position: {
           x: 300,
-          y: 250,
+          y: this.sprite.y + 50,
         },
         length: 200,
         width: 15,
       },
       this
     )
+  }
+
+  handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
+    const elements = Object.keys(dmgPerElement).filter(
+      (element) => element !== Elements.HEALTH
+    )
+    const shootElementalBlast = (index: number) => {
+      if (index == elements.length) {
+        this.game.time.delayedCall(500, () => {
+          if (this.game.enemy.health == 0) {
+            this.game.enemy.onDiedListener.forEach((fn) => fn())
+          } else {
+            this.game.enemy.takeTurn()
+          }
+        })
+        return
+      }
+      const element = elements[index]
+      const attackOrb = this.game.add.sprite(
+        this.sprite.x,
+        this.sprite.y,
+        `orb-${element}`
+      )
+      this.game.tweens.add({
+        targets: [attackOrb],
+        x: {
+          from: attackOrb.x,
+          to: this.game.enemy.sprite.x,
+        },
+        y: {
+          from: attackOrb.y,
+          to: this.game.enemy.sprite.y,
+        },
+        duration: 500,
+        onComplete: () => {
+          attackOrb.destroy()
+          UINumber.createNumber(
+            `${dmgPerElement[element]}`,
+            this.game,
+            this.game.enemy.sprite.x,
+            this.game.enemy.sprite.y,
+            'white',
+            '20px'
+          )
+          this.game.enemy.damage(dmgPerElement[element])
+          shootElementalBlast(index + 1)
+        },
+      })
+    }
+    shootElementalBlast(0)
+
+    // Handle heals
+    if (dmgPerElement[Elements.HEALTH] != undefined) {
+      const healAmount = dmgPerElement[Elements.HEALTH]
+      this.health = Math.min(this.maxHealth, this.health + healAmount)
+      this.healthBar.draw()
+      UINumber.createNumber(
+        `+${healAmount}`,
+        this.game,
+        this.sprite.x,
+        this.sprite.y,
+        'white',
+        '20px'
+      )
+    }
   }
 
   damage(amount: number) {
@@ -61,13 +128,22 @@ export class Player {
     this.healthBar.draw()
   }
 
-  calculateComboDamage(combos: string[][]): number {
-    //TODO: better calculation for damage (for now it's just total length of all combos)
-    const damage = combos.reduce((sum, combo) => sum + combo.length, 0)
-    return damage
+  calculateComboDamage(combos: string[][]): { [key in Elements]?: number } {
+    // Group each combo into elements
+    const mapping: { [key in Elements]?: number } = {}
+    combos.forEach((combo) => {
+      const element = combo[0] as Elements
+      if (mapping[element] == undefined) {
+        mapping[element] = 0
+      }
+      mapping[element]! += combo.length
+    })
+    return mapping
   }
 
-  addAttackListener(listener: (damage: number) => void) {
+  addAttackListener(
+    listener: (damagePerElement: { [key in Elements]?: number }) => void
+  ) {
     this.attackListener.push(listener)
   }
 

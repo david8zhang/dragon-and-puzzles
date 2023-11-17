@@ -42,14 +42,14 @@ export class Healthbar {
     this.bar.clear()
     const percentage = this.entity.health / this.entity.maxHealth
     const length = Math.max(0, Math.floor(percentage * this.config.length))
-    this.bar.fillStyle(0xffffff)
+    this.bar.fillStyle(0x000000)
 
     // Draw a black rectangle for healthbar BG
     this.bar.fillRect(
-      this.config.position.x + 30,
-      this.config.position.y,
-      this.config.length,
-      this.config.width
+      this.config.position.x + 28,
+      this.config.position.y - 2,
+      this.config.length + 4,
+      this.config.width + 4
     )
 
     if (percentage <= 0.33) {
