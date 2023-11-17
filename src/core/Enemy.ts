@@ -9,6 +9,7 @@ export interface EnemyConfig {
   maxHealth: number
   spriteName: string
   element: Elements
+  baseDamage: number
 }
 
 export const ENEMIES: EnemyConfig[] = [
@@ -16,26 +17,31 @@ export const ENEMIES: EnemyConfig[] = [
     maxHealth: 100,
     spriteName: 'green-dragon-debug',
     element: Elements.GRASS,
+    baseDamage: 10,
   },
   {
     maxHealth: 100,
     spriteName: 'water-dragon-debug',
     element: Elements.WATER,
+    baseDamage: 15,
   },
   {
     maxHealth: 100,
     spriteName: 'light-dragon-debug',
     element: Elements.LIGHT,
+    baseDamage: 20,
   },
   {
     maxHealth: 100,
     spriteName: 'dark-dragon-debug',
     element: Elements.DARK,
+    baseDamage: 25,
   },
   {
     maxHealth: 100,
     spriteName: 'rainbow-debug',
     element: Elements.NONE,
+    baseDamage: 30,
   },
 ]
 
@@ -53,6 +59,7 @@ export class Enemy {
 
   private game: Game
   private turnsUntilAttack: number = 1
+  private baseDamage: number = 0
   private nextMoveText: Phaser.GameObjects.Text
   private attackListener: Array<(damage: number) => void> = []
   private turnEndListener: Array<() => void> = []
@@ -65,6 +72,7 @@ export class Enemy {
     this.maxHealth = config.maxHealth
     this.health = this.maxHealth
     this.element = config.element
+    this.baseDamage = config.baseDamage
     this.setupHealthbar()
 
     // Set up sprite
@@ -144,6 +152,23 @@ export class Enemy {
     this.healthBar.draw()
   }
 
+  calculateDamageWithResistances() {
+    if (this.element == Elements.DARK) {
+      return this.baseDamage * 2
+    } else {
+      const playerElement = this.game.player.element
+      const playerWeaknesses = Constants.WEAKNESS_MAP[playerElement]
+      const playerResistances = Constants.RESISTANCES_MAP[playerElement]
+      if (playerWeaknesses.includes(this.element)) {
+        return Math.round(this.baseDamage * 1.5)
+      } else if (playerResistances.includes(this.element)) {
+        return Math.round(this.baseDamage * 0.5)
+      } else {
+        return this.baseDamage
+      }
+    }
+  }
+
   async takeTurn(): Promise<void> {
     // Enemy already dead, no need to take turn
     if (this.health <= 0) return
@@ -166,10 +191,11 @@ export class Enemy {
         },
         onComplete: () => {
           attackOrb.destroy()
-          this.attackListener.forEach((fn) => fn(10)) // deal 10 damage
+          const damage = this.calculateDamageWithResistances()
+          this.attackListener.forEach((fn) => fn(damage)) // deal 10 damage
           this.turnsUntilAttack = Math.floor(Math.random() * 3 + 1)
           UINumber.createNumber(
-            `${10}`,
+            `${damage}`,
             this.game,
             this.game.player.sprite.x,
             this.game.player.sprite.y,

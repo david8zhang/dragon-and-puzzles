@@ -10,6 +10,7 @@ export class Player {
   private static readonly MAX_HEALTH: number = 100
 
   private game: Game
+  public element: Elements = Elements.FIRE
   public sprite: Phaser.GameObjects.Sprite
 
   public readonly maxHealth: number = Player.MAX_HEALTH
@@ -87,13 +88,22 @@ export class Player {
         duration: 500,
         onComplete: () => {
           attackOrb.destroy()
+
+          const hasElementAdv =
+            Constants.WEAKNESS_MAP[this.game.enemy.element].includes(element)
+          const hasElementDisadv =
+            Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
+          if (hasElementAdv) {
+            this.game.cameras.main.shake(250, 0.005)
+          }
+
           UINumber.createNumber(
             `${dmgPerElement[element]}`,
             this.game,
             this.game.enemy.sprite.x,
             this.game.enemy.sprite.y,
             Constants.ELEMENT_TO_COLOR[element],
-            '25px'
+            hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
           )
           this.game.enemy.damage(dmgPerElement[element])
           shootElementalBlast(index + 1)
@@ -138,6 +148,19 @@ export class Player {
       }
       mapping[element]! += combo.length
     })
+
+    // Factor in elemental weaknesses
+    Object.keys(mapping).forEach((element: string) => {
+      const enemyElement = this.game.enemy.element
+      const enemyWeaknesses = Constants.WEAKNESS_MAP[enemyElement]
+      const enemyResistances = Constants.RESISTANCES_MAP[enemyElement]
+      if (enemyWeaknesses.includes(element)) {
+        mapping[element] = Math.round(mapping[element] * 1.5)
+      } else if (enemyResistances.includes(element)) {
+        mapping[element] = Math.round(mapping[element] * 0.5)
+      }
+    })
+
     return mapping
   }
 
