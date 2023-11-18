@@ -21,7 +21,7 @@ export class Board {
   private scene: Game
   private grid: Phaser.Geom.Rectangle[][] = []
   private orbs: (Orb | null)[][] = []
-  private graphics: Phaser.GameObjects.Graphics
+  private boardPanels: Phaser.GameObjects.Group
   private overlay: Phaser.GameObjects.Rectangle
 
   private combos: string[][] = [] // Total combos for the turn
@@ -30,7 +30,7 @@ export class Board {
 
   constructor(scene: Game) {
     this.scene = scene
-    this.graphics = this.scene.add.graphics()
+    this.boardPanels = this.scene.add.group()
     this.setupGrid()
 
     this.overlay = this.scene.add.rectangle(
@@ -48,6 +48,8 @@ export class Board {
   setupGrid() {
     let xPos = Board.GRID_TOP_LEFT_X
     let yPos = Board.GRID_TOP_LEFT_Y
+    const elementsForLevel = this.getElementsForLevel()
+
     for (let i = 0; i < Board.BOARD_HEIGHT; i++) {
       const orbRow: Orb[] = []
       const gridRow: Phaser.Geom.Rectangle[] = []
@@ -59,6 +61,22 @@ export class Board {
           Board.CELL_SIZE,
           Board.CELL_SIZE
         )
+
+        const boardPanel = this.scene.add
+          .rectangle(
+            xPos,
+            yPos,
+            Board.CELL_SIZE,
+            Board.CELL_SIZE,
+            (i + j) % 2 == 0 ? 0x888888 : 0x444444
+          )
+          .setOrigin(0, 0)
+          .setAlpha(0.5)
+          .setDepth(Constants.SORT_ORDER.background)
+          .setStrokeStyle(2, 0x555555)
+
+        this.boardPanels.add(boardPanel)
+
         const orb = new Orb(this.scene, {
           id: Phaser.Utils.String.UUID(),
           position: {
@@ -66,7 +84,7 @@ export class Board {
             y: cell.centerY,
           },
           radius: Board.CELL_SIZE / 2 - 10,
-          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
+          element: Phaser.Utils.Array.GetRandom(elementsForLevel),
           board: this,
         })
         orbRow[j] = orb
@@ -77,6 +95,37 @@ export class Board {
       this.orbs[i] = orbRow
       this.grid[i] = gridRow
     }
+  }
+
+  getElementsForLevel() {
+    const elementsInEachLevel = [
+      [Elements.NONE, Elements.HEALTH, Elements.FIRE],
+      [Elements.NONE, Elements.HEALTH, Elements.FIRE, Elements.GRASS],
+      [
+        Elements.NONE,
+        Elements.HEALTH,
+        Elements.FIRE,
+        Elements.GRASS,
+        Elements.WATER,
+      ],
+      [
+        Elements.NONE,
+        Elements.HEALTH,
+        Elements.FIRE,
+        Elements.GRASS,
+        Elements.WATER,
+        Elements.LIGHT,
+      ],
+      [
+        Elements.HEALTH,
+        Elements.FIRE,
+        Elements.GRASS,
+        Elements.WATER,
+        Elements.LIGHT,
+        Elements.DARK,
+      ],
+    ]
+    return elementsInEachLevel[this.scene.level]
   }
 
   getCellAtRowCol(row: number, col: number) {
@@ -298,7 +347,8 @@ export class Board {
     }
 
     let timeUntilLastOrbFalls = 0
-    allEmptySlots.forEach((column, index) => {
+    const elementsForLevel = this.getElementsForLevel()
+    allEmptySlots.forEach((column) => {
       let yPos = Board.GRID_TOP_LEFT_Y - 25
       column.forEach((slot) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
@@ -309,7 +359,7 @@ export class Board {
           },
           id: Phaser.Utils.String.UUID(),
           radius: Board.CELL_SIZE / 2 - 10,
-          element: Phaser.Utils.Array.GetRandom(Object.values(Elements)),
+          element: Phaser.Utils.Array.GetRandom(elementsForLevel),
           board: this,
           currCell: {
             row: slot.row,

@@ -3,13 +3,14 @@ import 'babel-polyfill'
 import { Game } from '~/scenes/Game'
 import { Healthbar } from './Healthbar'
 import { Board } from './Board'
-import { Elements } from '~/utils/Constants'
+import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
 
 export class Player {
   private static readonly MAX_HEALTH: number = 100
 
   private game: Game
+  public element: Elements = Elements.FIRE
   public sprite: Phaser.GameObjects.Sprite
 
   public readonly maxHealth: number = Player.MAX_HEALTH
@@ -28,6 +29,7 @@ export class Player {
       const damagePerElement = this.calculateComboDamage(combo)
       board.setDisabled(true)
       this.handlePlayerAttack(damagePerElement)
+      this.attackListener.forEach((fn) => fn(damagePerElement))
     })
 
     // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
@@ -55,17 +57,11 @@ export class Player {
 
   handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
     const elements = Object.keys(dmgPerElement).filter(
-      (element) => element !== Elements.HEALTH
+      (element) => element !== Elements.HEALTH && element !== Elements.NONE
     )
     const shootElementalBlast = (index: number) => {
       if (index == elements.length) {
-        this.game.time.delayedCall(500, () => {
-          if (this.game.enemy.health == 0) {
-            this.game.enemy.onDiedListener.forEach((fn) => fn())
-          } else {
-            this.game.enemy.takeTurn()
-          }
-        })
+        this.turnEndListener.forEach((fn) => fn())
         return
       }
       const element = elements[index]
@@ -87,13 +83,22 @@ export class Player {
         duration: 500,
         onComplete: () => {
           attackOrb.destroy()
+
+          const hasElementAdv =
+            Constants.WEAKNESS_MAP[this.game.enemy.element].includes(element)
+          const hasElementDisadv =
+            Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
+          if (hasElementAdv) {
+            this.game.cameras.main.shake(250, 0.005)
+          }
+
           UINumber.createNumber(
             `${dmgPerElement[element]}`,
             this.game,
             this.game.enemy.sprite.x,
             this.game.enemy.sprite.y,
-            'white',
-            '20px'
+            `#${Constants.ELEMENT_TO_COLOR[element]}`,
+            hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
           )
           this.game.enemy.damage(dmgPerElement[element])
           shootElementalBlast(index + 1)
@@ -122,7 +127,6 @@ export class Player {
     this.health -= amount
     if (this.health <= 0) {
       this.health = 0
-      // TODO: game over
       this.game.scene.start('gameover')
     }
     this.healthBar.draw()
@@ -138,6 +142,19 @@ export class Player {
       }
       mapping[element]! += combo.length
     })
+
+    // Factor in elemental weaknesses
+    Object.keys(mapping).forEach((element: string) => {
+      const enemyElement = this.game.enemy.element
+      const enemyWeaknesses = Constants.WEAKNESS_MAP[enemyElement]
+      const enemyResistances = Constants.RESISTANCES_MAP[enemyElement]
+      if (enemyWeaknesses.includes(element)) {
+        mapping[element] = Math.round(mapping[element] * 1.5)
+      } else if (enemyResistances.includes(element)) {
+        mapping[element] = Math.round(mapping[element] * 0.5)
+      }
+    })
+
     return mapping
   }
 

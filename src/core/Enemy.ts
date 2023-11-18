@@ -2,25 +2,46 @@ import 'babel-polyfill'
 
 import { Game } from '~/scenes/Game'
 import { Healthbar } from './Healthbar'
-import { Elements } from '~/utils/Constants'
+import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
 
 export interface EnemyConfig {
   maxHealth: number
   spriteName: string
   element: Elements
+  baseDamage: number
 }
 
 export const ENEMIES: EnemyConfig[] = [
   {
-    maxHealth: 10,
+    maxHealth: 50,
     spriteName: 'green-dragon-debug',
     element: Elements.GRASS,
+    baseDamage: 10,
+  },
+  {
+    maxHealth: 75,
+    spriteName: 'water-dragon-debug',
+    element: Elements.WATER,
+    baseDamage: 15,
+  },
+  {
+    maxHealth: 100,
+    spriteName: 'light-dragon-debug',
+    element: Elements.LIGHT,
+    baseDamage: 20,
+  },
+  {
+    maxHealth: 120,
+    spriteName: 'dark-dragon-debug',
+    element: Elements.DARK,
+    baseDamage: 20,
   },
   {
     maxHealth: 150,
-    spriteName: 'water-dragon-debug',
-    element: Elements.WATER,
+    spriteName: 'rainbow-debug',
+    element: Elements.ALL,
+    baseDamage: 25,
   },
 ]
 
@@ -34,10 +55,12 @@ export class Enemy {
   public health: number
   public healthBar!: Healthbar
   public sprite: Phaser.GameObjects.Sprite
-  public element: Elements
+  public element!: Elements
 
+  private isRainbow: boolean = false
   private game: Game
   private turnsUntilAttack: number = 1
+  private baseDamage: number = 0
   private nextMoveText: Phaser.GameObjects.Text
   private attackListener: Array<(damage: number) => void> = []
   private turnEndListener: Array<() => void> = []
@@ -49,7 +72,7 @@ export class Enemy {
     // Set up health
     this.maxHealth = config.maxHealth
     this.health = this.maxHealth
-    this.element = config.element
+    this.baseDamage = config.baseDamage
     this.setupHealthbar()
 
     // Set up sprite
@@ -63,7 +86,7 @@ export class Enemy {
     this.nextMoveText = this.game.add
       .text(
         Enemy.POSITION.x,
-        Enemy.POSITION.y - 115,
+        Enemy.POSITION.y - 110,
         `Attacks in ${this.turnsUntilAttack} turn${
           this.turnsUntilAttack == 1 ? '' : 's'
         }`
@@ -78,6 +101,61 @@ export class Enemy {
       this.nextMoveText.y
     )
     this.animateNextMoveText()
+
+    // If this is the rainbow dragon, pick a random element and change the tint
+    if (config.element === Elements.ALL) {
+      this.isRainbow = true
+      this.morphToRandomElement()
+    } else {
+      this.element = config.element
+    }
+  }
+
+  morphToRandomElement() {
+    const eligibleElements = [
+      Elements.FIRE,
+      Elements.WATER,
+      Elements.DARK,
+      Elements.LIGHT,
+      Elements.GRASS,
+    ]
+
+    const currColor = Constants.ELEMENT_TO_COLOR[this.element]
+    const randomElement = Phaser.Utils.Array.GetRandom(eligibleElements)
+    const newColor = Constants.ELEMENT_TO_COLOR[randomElement]
+
+    const oldColorObj = Phaser.Display.Color.ValueToColor(
+      Number.parseInt(`0x${currColor}`, 16)
+    )
+    const newColorObj = Phaser.Display.Color.ValueToColor(
+      Number.parseInt(`0x${newColor}`, 16)
+    )
+
+    this.game.tweens.addCounter({
+      from: 0,
+      to: 100,
+      duration: 500,
+      ease: Phaser.Math.Easing.Sine.InOut,
+      onUpdate: (tween) => {
+        const value = tween.getValue()
+        const colorObject = Phaser.Display.Color.Interpolate.ColorWithColor(
+          oldColorObj,
+          newColorObj,
+          100,
+          value
+        )
+        this.sprite.setTint(
+          Phaser.Display.Color.GetColor(
+            colorObject.r,
+            colorObject.g,
+            colorObject.b
+          )
+        )
+      },
+      onComplete: () => {
+        this.element = randomElement
+      },
+    })
   }
 
   animateNextMoveText() {
@@ -129,9 +207,48 @@ export class Enemy {
     this.healthBar.draw()
   }
 
+  calculateDamageWithResistances() {
+    if (this.element == Elements.DARK) {
+      return this.baseDamage * 1.75 // Dark deals more damage
+    } else {
+      const playerElement = this.game.player.element
+      const playerWeaknesses = Constants.WEAKNESS_MAP[playerElement]
+      const playerResistances = Constants.RESISTANCES_MAP[playerElement]
+      if (playerWeaknesses.includes(this.element)) {
+        return Math.round(this.baseDamage * 1.5)
+      } else if (playerResistances.includes(this.element)) {
+        return Math.round(this.baseDamage * 0.5)
+      } else {
+        return this.baseDamage
+      }
+    }
+  }
+
+  handleDeath() {
+    this.game.tweens.add({
+      targets: this.sprite,
+      onStart: () => {
+        this.nextMoveText.setVisible(false)
+      },
+      alpha: {
+        from: 1,
+        to: 0,
+      },
+      duration: 1000,
+      onComplete: () => {
+        this.game.time.delayedCall(500, () => {
+          this.onDiedListener.forEach((fn) => fn())
+        })
+      },
+    })
+  }
+
   async takeTurn(): Promise<void> {
     // Enemy already dead, no need to take turn
-    if (this.health <= 0) return
+    if (this.health <= 0) {
+      this.handleDeath()
+      return
+    }
 
     this.turnsUntilAttack--
     if (this.turnsUntilAttack === 0) {
@@ -151,16 +268,23 @@ export class Enemy {
         },
         onComplete: () => {
           attackOrb.destroy()
-          this.attackListener.forEach((fn) => fn(10)) // deal 10 damage
+          const damage = this.calculateDamageWithResistances()
+          this.attackListener.forEach((fn) => fn(damage)) // deal 10 damage
           this.turnsUntilAttack = Math.floor(Math.random() * 3 + 1)
           UINumber.createNumber(
-            `${10}`,
+            `${damage}`,
             this.game,
             this.game.player.sprite.x,
             this.game.player.sprite.y,
-            'white',
-            '20px'
+            Constants.ELEMENT_TO_COLOR[this.element],
+            '25px'
           )
+
+          // If the enemy is the rainbow dragon, change the typing every time it attacks
+          if (this.isRainbow) {
+            this.morphToRandomElement()
+          }
+
           this.endTurn()
         },
       })

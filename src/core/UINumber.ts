@@ -15,6 +15,7 @@ export class UINumber {
       })
       .setOrigin(0.5)
       .setDepth(5000)
+      .setStroke('black', 3)
     text.setName('InAir')
     scene.add.tween({
       targets: text,

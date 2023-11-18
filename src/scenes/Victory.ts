@@ -1,18 +1,16 @@
-import Phaser from 'phaser'
 import { Button } from '~/core/Button'
 import { Constants } from '~/utils/Constants'
 
-export default class GameOver extends Phaser.Scene {
+export class Victory extends Phaser.Scene {
   constructor() {
-    super('gameover')
+    super('victory')
   }
 
-  create(): void {
-    this.add.image(
-      Constants.WINDOW_WIDTH / 2,
-      Constants.WINDOW_HEIGHT / 2,
-      'gameover'
-    )
+  create() {
+    this.add
+      .image(Constants.WINDOW_WIDTH / 2, Constants.WINDOW_HEIGHT / 2, 'victory')
+      .setDisplaySize(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT)
+
     const button = new Button({
       scene: this,
       strokeColor: 0x000000,
@@ -25,7 +23,7 @@ export default class GameOver extends Phaser.Scene {
         gameScene.registry.destroy()
         gameScene.scene.restart()
         gameScene.sound.removeAll()
-        this.scene.start('game')
+        this.scene.start('game', { level: 0 })
       },
       x: Constants.WINDOW_WIDTH / 2,
       y: Constants.WINDOW_HEIGHT / 2,
