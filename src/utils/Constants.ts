@@ -12,6 +12,7 @@ export enum Elements {
 export class Constants {
   public static WINDOW_WIDTH = 600
   public static WINDOW_HEIGHT = 800
+  public static MOVE_TIME_LIMIT = 8 // Time to move orbs (in seconds)
 
   public static SORT_ORDER = {
     background: 100,
@@ -32,9 +33,9 @@ export class Constants {
   }
 
   public static WEAKNESS_MAP = {
-    [Elements.FIRE]: [Elements.WATER, Elements.DARK],
-    [Elements.WATER]: [Elements.GRASS, Elements.DARK],
-    [Elements.GRASS]: [Elements.FIRE, Elements.DARK],
+    [Elements.FIRE]: [Elements.WATER],
+    [Elements.WATER]: [Elements.GRASS],
+    [Elements.GRASS]: [Elements.FIRE],
     [Elements.LIGHT]: [Elements.DARK],
     [Elements.DARK]: [Elements.LIGHT],
   }
@@ -43,7 +44,7 @@ export class Constants {
     [Elements.FIRE]: Elements.GRASS,
     [Elements.WATER]: Elements.FIRE,
     [Elements.GRASS]: Elements.WATER,
-    [Elements.LIGHT]: [Elements.GRASS, Elements.FIRE, Elements.WATER],
+    [Elements.LIGHT]: [],
     [Elements.DARK]: [
       Elements.GRASS,
       Elements.FIRE,

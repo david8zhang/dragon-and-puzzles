@@ -207,23 +207,6 @@ export class Enemy {
     this.healthBar.draw()
   }
 
-  calculateDamageWithResistances() {
-    if (this.element == Elements.DARK) {
-      return this.baseDamage * 1.75 // Dark deals more damage
-    } else {
-      const playerElement = this.game.player.element
-      const playerWeaknesses = Constants.WEAKNESS_MAP[playerElement]
-      const playerResistances = Constants.RESISTANCES_MAP[playerElement]
-      if (playerWeaknesses.includes(this.element)) {
-        return Math.round(this.baseDamage * 1.5)
-      } else if (playerResistances.includes(this.element)) {
-        return Math.round(this.baseDamage * 0.5)
-      } else {
-        return this.baseDamage
-      }
-    }
-  }
-
   handleDeath() {
     this.game.tweens.add({
       targets: this.sprite,
@@ -268,15 +251,14 @@ export class Enemy {
         },
         onComplete: () => {
           attackOrb.destroy()
-          const damage = this.calculateDamageWithResistances()
-          this.attackListener.forEach((fn) => fn(damage)) // deal 10 damage
+          this.attackListener.forEach((fn) => fn(this.baseDamage)) // deal 10 damage
           this.turnsUntilAttack = Math.floor(Math.random() * 3 + 1)
           UINumber.createNumber(
-            `${damage}`,
+            `${this.baseDamage}`,
             this.game,
             this.game.player.sprite.x,
             this.game.player.sprite.y,
-            Constants.ELEMENT_TO_COLOR[this.element],
+            'white',
             '25px'
           )
 
