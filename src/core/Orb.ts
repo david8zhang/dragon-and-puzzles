@@ -104,6 +104,12 @@ export class Orb {
             this.handleDragEnd(this.sprite.x, this.sprite.y)
           } else {
             this.timerBar.setDisplaySize(pctWidth * this.sprite.displayWidth, 4)
+
+            if (pctWidth < 0.25) {
+              this.timerBar.setFillStyle(0xff0000)
+            } else if (pctWidth < 0.5) {
+              this.timerBar.setFillStyle(0xf1c40f)
+            }
           }
         },
       })

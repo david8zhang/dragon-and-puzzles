@@ -33,9 +33,9 @@ export class Constants {
   }
 
   public static WEAKNESS_MAP = {
-    [Elements.FIRE]: [Elements.WATER, Elements.DARK],
-    [Elements.WATER]: [Elements.GRASS, Elements.DARK],
-    [Elements.GRASS]: [Elements.FIRE, Elements.DARK],
+    [Elements.FIRE]: [Elements.WATER],
+    [Elements.WATER]: [Elements.GRASS],
+    [Elements.GRASS]: [Elements.FIRE],
     [Elements.LIGHT]: [Elements.DARK],
     [Elements.DARK]: [Elements.LIGHT],
   }
@@ -44,7 +44,7 @@ export class Constants {
     [Elements.FIRE]: Elements.GRASS,
     [Elements.WATER]: Elements.FIRE,
     [Elements.GRASS]: Elements.WATER,
-    [Elements.LIGHT]: [Elements.GRASS, Elements.FIRE, Elements.WATER],
+    [Elements.LIGHT]: [],
     [Elements.DARK]: [
       Elements.GRASS,
       Elements.FIRE,
