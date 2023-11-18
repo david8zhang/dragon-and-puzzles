@@ -12,6 +12,7 @@ export enum Elements {
 export class Constants {
   public static WINDOW_WIDTH = 600
   public static WINDOW_HEIGHT = 800
+  public static MOVE_TIME_LIMIT = 8 // Time to move orbs (in seconds)
 
   public static SORT_ORDER = {
     background: 100,
