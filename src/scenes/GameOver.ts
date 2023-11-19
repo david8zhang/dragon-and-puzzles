@@ -25,7 +25,9 @@ export default class GameOver extends Phaser.Scene {
         gameScene.registry.destroy()
         gameScene.scene.restart()
         gameScene.sound.removeAll()
-        this.scene.start('game')
+        this.scene.start('game', {
+          level: 0,
+        })
       },
       x: Constants.WINDOW_WIDTH / 2,
       y: Constants.WINDOW_HEIGHT / 2,

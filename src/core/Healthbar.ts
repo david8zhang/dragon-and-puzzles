@@ -15,6 +15,7 @@ export class Healthbar {
   private bar: Phaser.GameObjects.Graphics
   private entity: { health: number; maxHealth: number }
   private config: HealthbarConfig
+  private text: Phaser.GameObjects.Text
 
   constructor(
     scene: Game,
@@ -31,11 +32,25 @@ export class Healthbar {
     this.scene.add.existing(this.bar)
     this.draw()
 
-    this.scene.add
+    const heart = this.scene.add
       .image(this.config.position.x + 10, this.config.position.y + 8, 'heart')
       .setTintFill(0xff0000)
       .setScale(0.5)
       .setDepth(Constants.SORT_ORDER.ui)
+
+    this.text = this.scene.add
+      .text(
+        this.config.position.x + heart.displayWidth + config.length / 2,
+        this.config.position.y + config.width + 5,
+        `${this.entity.health}/${this.entity.maxHealth}`,
+        {
+          fontSize: '20px',
+          color: 'white',
+        }
+      )
+      .setStroke('black', 5)
+      .setDepth(Constants.SORT_ORDER.ui)
+      .setOrigin(0.5, 0)
   }
 
   draw(): void {
@@ -43,6 +58,10 @@ export class Healthbar {
     const percentage = this.entity.health / this.entity.maxHealth
     const length = Math.max(0, Math.floor(percentage * this.config.length))
     this.bar.fillStyle(0x000000)
+
+    if (this.text) {
+      this.text.setText(`${this.entity.health}/${this.entity.maxHealth}`)
+    }
 
     // Draw a black rectangle for healthbar BG
     this.bar.fillRect(

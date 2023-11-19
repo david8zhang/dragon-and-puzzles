@@ -1,40 +1,39 @@
 import { Button } from '~/core/Button'
+import { Cutscene } from '~/core/Cutscene'
 import { Constants } from '~/utils/Constants'
 
 export class Victory extends Phaser.Scene {
+  private isPreBoss: boolean = false
+  private cutscene!: Cutscene
+
   constructor() {
     super('victory')
   }
 
+  init(data) {
+    this.isPreBoss = data.isPreBoss
+  }
+
   create() {
-    this.add
-      .image(Constants.WINDOW_WIDTH / 2, Constants.WINDOW_HEIGHT / 2, 'victory')
-      .setDisplaySize(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT)
+    if (this.isPreBoss) {
+      this.cutscene = new Cutscene(this, {
+        scenes: Constants.PRE_BOSS_CUTSCENE,
+        onComplete: () => {
+          this.scene.start('game', { level: 4 })
+        },
+      })
+    } else {
+      this.cutscene = new Cutscene(this, {
+        scenes: Constants.END_CUTSCENE,
+        onComplete: () => {
+          const gameScene = this.scene.get('start')
+          gameScene.registry.destroy()
+          gameScene.scene.restart()
+          gameScene.sound.removeAll()
 
-    const button = new Button({
-      scene: this,
-      strokeColor: 0x000000,
-      width: 200,
-      height: 50,
-      text: 'Play Again',
-      backgroundColor: 0xffffff,
-      onClick: () => {
-        const gameScene = this.scene.get('game')
-        gameScene.registry.destroy()
-        gameScene.scene.restart()
-        gameScene.sound.removeAll()
-        this.scene.start('game', { level: 0 })
-      },
-      x: Constants.WINDOW_WIDTH / 2,
-      y: Constants.WINDOW_HEIGHT / 2,
-      fontSize: '20px',
-    })
-    button.setVisible(false)
-
-    this.cameras.main.fadeIn(2000, 1, 1, 1, (camera, progress) => {
-      if (progress == 1) {
-        button.setVisible(true)
-      }
-    })
+          this.scene.start('start')
+        },
+      })
+    }
   }
 }

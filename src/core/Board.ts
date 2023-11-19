@@ -41,7 +41,8 @@ export class Board {
       0x000000,
       0.0
     )
-    this.overlay.setDepth(1000)
+    this.overlay.setDepth(Constants.SORT_ORDER.top)
+
     this.comboCounter = this.scene.add.group()
   }
 
@@ -427,18 +428,17 @@ export class Board {
       }
     }
 
+    const comboNumber = this.comboCounter.children.entries.length + 1
+    const comboText =
+      comboNumber == 1 ? `Combo ${comboNumber}` : `Combo ${comboNumber}\nx1.25`
     const comboCounterText = this.scene.add
-      .text(
-        midPoint.x,
-        midPoint.y,
-        `Combo ${this.comboCounter.children.entries.length + 1}`,
-        {
-          fontSize: '18px',
-          color: 'white',
-        }
-      )
+      .text(midPoint.x, midPoint.y, comboText, {
+        fontSize: '18px',
+        color: 'white',
+      })
       .setDepth(1000)
       .setStroke('black', 3)
+      .setAlign('center')
     comboCounterText.setPosition(
       midPoint.x - comboCounterText.displayWidth / 2,
       midPoint.y - comboCounterText.displayHeight / 2
