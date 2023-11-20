@@ -1,12 +1,23 @@
 import { Button } from '~/core/Button'
+import { Cutscene } from '~/core/Cutscene'
 import { Constants } from '~/utils/Constants'
 
 export class Start extends Phaser.Scene {
+  private cutscene!: Cutscene
+
   constructor() {
     super('start')
   }
 
   create() {
+    this.cutscene = new Cutscene(this, {
+      scenes: Constants.INTRO_CUTSCENE,
+      onComplete: () => {
+        this.scene.start('game', { level: 0 })
+      },
+    })
+    this.cutscene.setVisible(false)
+
     const titleText = this.add
       .text(
         Constants.WINDOW_WIDTH / 2,
@@ -24,7 +35,9 @@ export class Start extends Phaser.Scene {
       y: Constants.WINDOW_HEIGHT / 2,
       text: 'Start',
       onClick: () => {
-        this.scene.start('game')
+        titleText.setVisible(false)
+        startButton.setVisible(false)
+        this.cutscene.setVisible(true)
       },
       width: 200,
       height: 50,

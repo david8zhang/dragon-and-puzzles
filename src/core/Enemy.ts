@@ -10,38 +10,44 @@ export interface EnemyConfig {
   spriteName: string
   element: Elements
   baseDamage: number
+  maxTurnsUntilAttack: number
 }
 
 export const ENEMIES: EnemyConfig[] = [
   {
-    maxHealth: 50,
+    maxHealth: 75,
     spriteName: 'green-dragon-debug',
     element: Elements.GRASS,
     baseDamage: 10,
+    maxTurnsUntilAttack: 4,
   },
   {
-    maxHealth: 75,
+    maxHealth: 125,
     spriteName: 'water-dragon-debug',
     element: Elements.WATER,
     baseDamage: 15,
-  },
-  {
-    maxHealth: 100,
-    spriteName: 'light-dragon-debug',
-    element: Elements.LIGHT,
-    baseDamage: 20,
-  },
-  {
-    maxHealth: 120,
-    spriteName: 'dark-dragon-debug',
-    element: Elements.DARK,
-    baseDamage: 20,
+    maxTurnsUntilAttack: 3,
   },
   {
     maxHealth: 150,
+    spriteName: 'light-dragon-debug',
+    element: Elements.LIGHT,
+    baseDamage: 20,
+    maxTurnsUntilAttack: 3,
+  },
+  {
+    maxHealth: 150,
+    spriteName: 'dark-dragon-debug',
+    element: Elements.DARK,
+    baseDamage: 20,
+    maxTurnsUntilAttack: 3,
+  },
+  {
+    maxHealth: 200,
     spriteName: 'rainbow-debug',
     element: Elements.ALL,
     baseDamage: 25,
+    maxTurnsUntilAttack: 2,
   },
 ]
 
@@ -60,6 +66,7 @@ export class Enemy {
   private isRainbow: boolean = false
   private game: Game
   private turnsUntilAttack: number = 1
+  private maxTurnsUntilAttack: number = 3
   private baseDamage: number = 0
   private nextMoveText: Phaser.GameObjects.Text
   private attackListener: Array<(damage: number) => void> = []
@@ -73,6 +80,7 @@ export class Enemy {
     this.maxHealth = config.maxHealth
     this.health = this.maxHealth
     this.baseDamage = config.baseDamage
+    this.maxTurnsUntilAttack = config.maxTurnsUntilAttack
     this.setupHealthbar()
 
     // Set up sprite
@@ -252,7 +260,10 @@ export class Enemy {
         onComplete: () => {
           attackOrb.destroy()
           this.attackListener.forEach((fn) => fn(this.baseDamage)) // deal 10 damage
-          this.turnsUntilAttack = Math.floor(Math.random() * 3 + 1)
+          this.turnsUntilAttack = Phaser.Math.Between(
+            1,
+            this.maxTurnsUntilAttack
+          )
           UINumber.createNumber(
             `${this.baseDamage}`,
             this.game,

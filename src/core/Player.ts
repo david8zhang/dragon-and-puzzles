@@ -26,7 +26,7 @@ export class Player {
     this.game = game
     board.addTurnEndListener((combo) => {
       // Calculate damage from combos and attack enemy
-      const damagePerElement = this.calculateComboDamage(combo)
+      const damagePerElement = this.calculateComboDamageOrHealAmt(combo)
       board.setDisabled(true)
       this.handlePlayerAttack(damagePerElement)
       this.attackListener.forEach((fn) => fn(damagePerElement))
@@ -132,7 +132,11 @@ export class Player {
     this.healthBar.draw()
   }
 
-  calculateComboDamage(combos: string[][]): { [key in Elements]?: number } {
+  calculateComboDamageOrHealAmt(combos: string[][]): {
+    [key in Elements]?: number
+  } {
+    const comboMultiplier = 1 + (combos.length - 1) * 0.25
+
     // Group each combo into elements
     const mapping: { [key in Elements]?: number } = {}
     combos.forEach((combo) => {
@@ -140,7 +144,7 @@ export class Player {
       if (mapping[element] == undefined) {
         mapping[element] = 0
       }
-      mapping[element]! += combo.length
+      mapping[element]! += Math.round(combo.length * comboMultiplier)
     })
 
     // Factor in elemental weaknesses
@@ -149,9 +153,9 @@ export class Player {
       const enemyWeaknesses = Constants.WEAKNESS_MAP[enemyElement]
       const enemyResistances = Constants.RESISTANCES_MAP[enemyElement]
       if (enemyWeaknesses.includes(element)) {
-        mapping[element] = Math.round(mapping[element] * 1.5)
+        mapping[element] = Math.round(mapping[element] * 1.25)
       } else if (enemyResistances.includes(element)) {
-        mapping[element] = Math.round(mapping[element] * 0.5)
+        mapping[element] = Math.round(mapping[element] * 0.75)
       }
     })
 
