@@ -1,3 +1,4 @@
+import { Scene } from 'phaser'
 import { Game } from '~/scenes/Game'
 import { Constants } from '~/utils/Constants'
 
@@ -10,7 +11,7 @@ export interface HealthbarConfig {
   width: number
 }
 export class Healthbar {
-  private scene: Game
+  private scene: Scene
 
   private bar: Phaser.GameObjects.Graphics
   private entity: { health: number; maxHealth: number }
@@ -18,7 +19,7 @@ export class Healthbar {
   private text: Phaser.GameObjects.Text
 
   constructor(
-    scene: Game,
+    scene: Scene,
     config: HealthbarConfig,
     entity: { health: number; maxHealth: number }
   ) {
@@ -51,6 +52,15 @@ export class Healthbar {
       .setStroke('black', 5)
       .setDepth(Constants.SORT_ORDER.ui)
       .setOrigin(0.5, 0)
+  }
+
+  toggleHealthText(isVisible: boolean) {
+    this.text.setVisible(isVisible)
+  }
+
+  setVisible(isVisible) {
+    this.text.setVisible(isVisible)
+    this.bar.setVisible(isVisible)
   }
 
   draw(): void {

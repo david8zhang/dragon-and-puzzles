@@ -52,7 +52,7 @@ export const ENEMIES: EnemyConfig[] = [
 ]
 
 export class Enemy {
-  private static readonly POSITION: { x: number; y: number } = {
+  protected static readonly POSITION: { x: number; y: number } = {
     x: 465,
     y: 125,
   }
@@ -63,14 +63,14 @@ export class Enemy {
   public sprite: Phaser.GameObjects.Sprite
   public element!: Elements
 
-  private isRainbow: boolean = false
-  private game: Game
-  private turnsUntilAttack: number = 1
-  private maxTurnsUntilAttack: number = 3
-  private baseDamage: number = 0
-  private nextMoveText: Phaser.GameObjects.Text
-  private attackListener: Array<(damage: number) => void> = []
-  private turnEndListener: Array<() => void> = []
+  protected isRainbow: boolean = false
+  protected game: Game
+  protected turnsUntilAttack: number = 1
+  protected maxTurnsUntilAttack: number = 3
+  protected baseDamage: number = 0
+  protected nextMoveText: Phaser.GameObjects.Text
+  protected attackListener: Array<(damage: number) => void> = []
+  protected turnEndListener: Array<() => void> = []
   public onDiedListener: Array<() => void> = []
 
   constructor(game: Game, config: EnemyConfig) {

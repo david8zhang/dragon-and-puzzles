@@ -24,6 +24,17 @@ export class Player {
 
   constructor(game: Game, board: Board) {
     this.game = game
+
+    // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
+    this.sprite = this.game.add
+      .sprite(175, 275, 'fire-dragon-debug')
+      .setScale(2.1)
+
+    this.setupTurnEndListener(board)
+    this.setupHealthbar()
+  }
+
+  setupTurnEndListener(board: Board) {
     board.addTurnEndListener((combo) => {
       // Calculate damage from combos and attack enemy
       const damagePerElement = this.calculateComboDamageOrHealAmt(combo)
@@ -31,12 +42,6 @@ export class Player {
       this.handlePlayerAttack(damagePerElement)
       this.attackListener.forEach((fn) => fn(damagePerElement))
     })
-
-    // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
-    this.sprite = this.game.add
-      .sprite(175, 275, 'fire-dragon-debug')
-      .setScale(2.1)
-    this.setupHealthbar()
   }
 
   setupHealthbar() {

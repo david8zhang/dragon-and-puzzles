@@ -10,11 +10,13 @@ export class Preload extends Phaser.Scene {
     this.load.image('light-dragon-debug', 'dragons/dragonite.png')
     this.load.image('dark-dragon-debug', 'dragons/hydreigon.png')
     this.load.image('rainbow-debug', 'dragons/reshiram.png')
+    this.load.image('tutorial-debug', 'dragons/axew.png')
 
     this.load.image('heart', 'ui/heart.png')
     this.load.image('gameover', 'ui/gameover.png')
     this.load.image('victory', 'ui/victory.jpeg')
     this.load.image('background', 'ui/bg.png')
+    this.load.image('pointer', 'ui/pointer.png')
 
     this.load.image('orb-none', 'orbs/orb-none.png')
     this.load.image('orb-fire', 'orbs/orb-fire.png')
@@ -26,6 +28,6 @@ export class Preload extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start('victory')
+    this.scene.start('start')
   }
 }
