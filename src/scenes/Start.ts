@@ -13,7 +13,7 @@ export class Start extends Phaser.Scene {
     this.cutscene = new Cutscene(this, {
       scenes: Constants.INTRO_CUTSCENE,
       onComplete: () => {
-        this.scene.start('game', { level: 0 })
+        this.scene.start('tutorial')
       },
     })
     this.cutscene.setVisible(false)

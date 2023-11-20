@@ -1,6 +1,7 @@
 import { Constants, Elements } from '~/utils/Constants'
 import { Orb } from './Orb'
 import { Game } from '~/scenes/Game'
+import { Scene } from 'phaser'
 
 export interface BoardPosition {
   row: number
@@ -8,30 +9,30 @@ export interface BoardPosition {
 }
 
 export class Board {
-  private static BOARD_WIDTH = 6
-  private static BOARD_HEIGHT = 5
-  private static CELL_SIZE = 75
-  private static GRID_TOP_LEFT_X = 75
-  private static GRID_TOP_LEFT_Y = 400
+  protected static BOARD_WIDTH = 6
+  protected static BOARD_HEIGHT = 5
+  protected static CELL_SIZE = 75
+  protected static GRID_TOP_LEFT_X = 75
+  protected static GRID_TOP_LEFT_Y = 400
 
-  private processingCombos = false
-  private disabled = false
+  protected processingCombos = false
+  protected disabled = false
   isInteractable = () => !this.processingCombos && !this.disabled
 
-  private scene: Game
-  private grid: Phaser.Geom.Rectangle[][] = []
-  private orbs: (Orb | null)[][] = []
-  private boardPanels: Phaser.GameObjects.Group
-  private overlay: Phaser.GameObjects.Rectangle
+  protected scene: Scene
+  protected grid: Phaser.Geom.Rectangle[][] = []
+  protected orbs: (Orb | null)[][] = []
+  protected boardPanels: Phaser.GameObjects.Group
+  protected overlay: Phaser.GameObjects.Rectangle
 
-  private combos: string[][] = [] // Total combos for the turn
-  private turnEndListener: Array<(combos: string[][]) => void> = []
-  private comboCounter: Phaser.GameObjects.Group
+  protected combos: string[][] = [] // Total combos for the turn
+  protected turnEndListener: Array<(combos: string[][]) => void> = []
+  protected comboCounter: Phaser.GameObjects.Group
 
-  constructor(scene: Game) {
+  constructor(scene: Scene) {
     this.scene = scene
     this.boardPanels = this.scene.add.group()
-    this.setupGrid()
+    this.setupBoard()
 
     this.overlay = this.scene.add.rectangle(
       Board.GRID_TOP_LEFT_X + (Board.BOARD_WIDTH * Board.CELL_SIZE) / 2,
@@ -46,7 +47,7 @@ export class Board {
     this.comboCounter = this.scene.add.group()
   }
 
-  setupGrid() {
+  setupBoard() {
     let xPos = Board.GRID_TOP_LEFT_X
     let yPos = Board.GRID_TOP_LEFT_Y
     const elementsForLevel = this.getElementsForLevel()
@@ -126,7 +127,8 @@ export class Board {
         Elements.DARK,
       ],
     ]
-    return elementsInEachLevel[this.scene.level]
+    const scene = this.scene as Game
+    return elementsInEachLevel[scene.level]
   }
 
   getCellAtRowCol(row: number, col: number) {
@@ -346,7 +348,10 @@ export class Board {
     if (allEmptySlots.length == 0) {
       this.handleCombos()
     }
+    this.generateOrbsToFillEmptySlots(allEmptySlots)
+  }
 
+  generateOrbsToFillEmptySlots(allEmptySlots: BoardPosition[][]) {
     let timeUntilLastOrbFalls = 0
     const elementsForLevel = this.getElementsForLevel()
     allEmptySlots.forEach((column) => {
@@ -395,7 +400,6 @@ export class Board {
         yPos -= Board.CELL_SIZE - 20
       })
     })
-
     this.scene.time.delayedCall(timeUntilLastOrbFalls, () => {
       this.handleCombos()
     })

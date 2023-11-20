@@ -59,7 +59,7 @@ export class Cutscene {
         Constants.WINDOW_HEIGHT - 15,
         'Continue',
         {
-          fontSize: '25px',
+          fontSize: '20px',
           color: 'white',
         }
       )
