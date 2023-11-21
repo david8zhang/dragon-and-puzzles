@@ -98,6 +98,8 @@ export class Tutorial extends Phaser.Scene {
         this.transitionTitleText.setVisible(false)
         this.continueButton.setVisible(false)
         this.game.scene.start('game', { level: 0 })
+        this.tutorialTextBlockIndex = 0
+        this.tutorialTextLineIndex = 0
       },
       x: Constants.WINDOW_WIDTH / 2,
       y: Constants.WINDOW_HEIGHT - 100,
@@ -113,6 +115,8 @@ export class Tutorial extends Phaser.Scene {
   }
 
   displayTransitionOverlay() {
+    this.sound.stopAll()
+    this.sound.play('level-victory', { volume: 0.25 })
     this.transitionOverlayRect.setVisible(true).setAlpha(0)
     this.tweens.add({
       targets: [this.transitionOverlayRect],
@@ -282,6 +286,8 @@ export class Tutorial extends Phaser.Scene {
   }
 
   create() {
+    this.sound.stopAll()
+    this.sound.play('tutorial', { volume: 0.25, loop: true })
     this.cameras.main.setBackgroundColor(0x369f5c)
     this.board = new TutorialBoard(this)
     this.board.setDisabled(true)
@@ -296,7 +302,6 @@ export class Tutorial extends Phaser.Scene {
       Tutorial.TUTORIAL_ENEMY_CONFIG
     )
     this.enemy.toggleInvulnerable(true)
-    this.enemy.addOnDiedListener(() => {})
 
     this.add
       .image(0, 0, 'background')

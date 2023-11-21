@@ -264,6 +264,7 @@ export class Enemy {
             1,
             this.maxTurnsUntilAttack
           )
+          this.game.sound.play('basic-attack')
           UINumber.createNumber(
             `${this.baseDamage}`,
             this.game,

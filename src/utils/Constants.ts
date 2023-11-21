@@ -93,7 +93,15 @@ export class Constants {
       imageSrc: '',
     },
     {
-      text: "Of course, that's also what the previous King of the Dragons had thought as well...Will one rise to challenge and overthrow you, or will you reign supreme?",
+      text: "Of course, that's also what the previous King of the Dragons had believed for so long, until you defeated him.",
+      imageSrc: '',
+    },
+    {
+      text: 'Will one rise to challenge and overthrow you, or will you reign supreme? Only time will tell...',
+      imageSrc: '',
+    },
+    {
+      text: 'Thanks for playing!',
       imageSrc: '',
     },
   ]

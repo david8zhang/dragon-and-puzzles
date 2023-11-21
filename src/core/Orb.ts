@@ -134,6 +134,7 @@ export class Orb {
       newCell.row !== this.currCell.row ||
       newCell.col !== this.currCell.col
     ) {
+      this.scene.sound.play('orb-move')
       const orbAtNewLocation = this.board.getOrbAtRowCol(
         newCell.row,
         newCell.col

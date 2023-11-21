@@ -472,6 +472,14 @@ export class Board {
           from: 1,
           to: 0,
         },
+        onStart: () => {
+          this.scene.sound.play('combo', {
+            detune: Math.min(
+              1000,
+              this.comboCounter.children.entries.length * 100
+            ),
+          })
+        },
         onComplete: () => {
           orbs.forEach((orb) => {
             const rowCol = orb.currCell
