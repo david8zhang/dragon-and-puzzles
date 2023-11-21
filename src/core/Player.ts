@@ -94,7 +94,12 @@ export class Player {
           const hasElementDisadv =
             Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
           if (hasElementAdv) {
+            this.game.sound.play('effective-attack')
             this.game.cameras.main.shake(250, 0.005)
+          } else if (hasElementDisadv) {
+            this.game.sound.play('weak-attack')
+          } else {
+            this.game.sound.play('basic-attack')
           }
 
           UINumber.createNumber(
@@ -117,6 +122,7 @@ export class Player {
       const healAmount = dmgPerElement[Elements.HEALTH]
       this.health = Math.min(this.maxHealth, this.health + healAmount)
       this.healthBar.draw()
+      this.game.sound.play('heal', { volume: 0.1 })
       UINumber.createNumber(
         `+${healAmount}`,
         this.game,

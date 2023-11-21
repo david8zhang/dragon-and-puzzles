@@ -28,6 +28,15 @@ export class Game extends Phaser.Scene {
   }
 
   create() {
+    if (this.level < 4) {
+      this.sound.stopAll()
+
+      if (this.level < 2) {
+        this.sound.play('level', { loop: true, volume: 0.25 })
+      } else {
+        this.sound.play('level-2', { loop: true, volume: 0.25 })
+      }
+    }
     this.cameras.main.setBackgroundColor(0x369f5c)
     this.board = new Board(this)
 
@@ -136,6 +145,8 @@ export class Game extends Phaser.Scene {
   }
 
   displayTransitionOverlay() {
+    this.sound.stopAll()
+    this.sound.play('level-victory', { volume: 0.25 })
     this.transitionOverlayRect.setVisible(true).setAlpha(0)
     this.tweens.add({
       targets: [this.transitionOverlayRect],

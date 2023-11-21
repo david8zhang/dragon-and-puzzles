@@ -8,6 +8,8 @@ export default class GameOver extends Phaser.Scene {
   }
 
   create(): void {
+    this.sound.stopAll()
+    this.sound.play('defeat', { volume: 0.25 })
     this.add.image(
       Constants.WINDOW_WIDTH / 2,
       Constants.WINDOW_HEIGHT / 2,

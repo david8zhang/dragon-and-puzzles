@@ -7,6 +7,7 @@ export interface CutsceneConfig {
     imageSrc: string
   }[]
   onComplete: Function
+  onSceneTransition?: Function
 }
 
 export class Cutscene {
@@ -68,6 +69,9 @@ export class Cutscene {
       .setInteractive({ cursor: 'pointer' })
       .on(Phaser.Input.Events.POINTER_UP, () => {
         this.cutsceneIndex++
+        if (config.onSceneTransition) {
+          config.onSceneTransition(this.cutsceneIndex)
+        }
         if (this.cutsceneIndex >= this.scenes.length) {
           this.onComplete()
         } else {
