@@ -16,6 +16,8 @@ export class Game extends Phaser.Scene {
   private transitionOrbUnlocked!: Phaser.GameObjects.Sprite
   private transitionSubtitleText!: Phaser.GameObjects.Text
   private continueButton!: Button
+  public cameraGrayscaleFilter: any
+  public grayscalePlugin: any
 
   constructor() {
     super('game')
@@ -27,7 +29,12 @@ export class Game extends Phaser.Scene {
     }
   }
 
+  initPlugins() {
+    this.grayscalePlugin = this.plugins.get('rexGrayscalePipeline')
+  }
+
   create() {
+    this.initPlugins()
     if (this.level < 4) {
       this.sound.stopAll()
 

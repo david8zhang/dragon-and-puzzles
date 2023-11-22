@@ -7,6 +7,7 @@ import GameOver from './scenes/GameOver'
 import { Victory } from './scenes/Victory'
 import { Start } from './scenes/Start'
 import { Tutorial } from './scenes/Tutorial'
+import GrayscalePipelinePlugin from 'phaser3-rex-plugins/plugins/grayscalepipeline-plugin'
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -22,6 +23,15 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   dom: {
     createContainer: true,
+  },
+  plugins: {
+    global: [
+      {
+        key: 'rexGrayscalePipeline',
+        plugin: GrayscalePipelinePlugin,
+        start: true,
+      },
+    ],
   },
   pixelArt: true,
   scale: {

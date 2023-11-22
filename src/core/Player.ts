@@ -61,8 +61,10 @@ export class Player {
   }
 
   handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
+    const availableElements = this.game.board.getElementsForLevel() as string[]
     const elements = Object.keys(dmgPerElement).filter(
-      (element) => element !== Elements.HEALTH && element !== Elements.NONE
+      (element) =>
+        element !== Elements.HEALTH && availableElements.includes(element)
     )
     const shootElementalBlast = (index: number) => {
       if (index == elements.length) {

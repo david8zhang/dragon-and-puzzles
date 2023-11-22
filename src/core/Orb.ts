@@ -15,6 +15,7 @@ export interface OrbConfig {
     row: number
     col: number
   }
+  isDeactivated?: boolean
 }
 
 export class Orb {
@@ -32,6 +33,7 @@ export class Orb {
   }
   public timerStarted: boolean = false
   private timerEnabled: boolean = true
+  public isDeactivated: boolean = false
 
   constructor(scene: Scene, config: OrbConfig) {
     this.id = config.id
@@ -54,6 +56,15 @@ export class Orb {
         config.position.y
       )
     }
+
+    if (config.isDeactivated) {
+      this.isDeactivated = config.isDeactivated
+      const grayscalePlugin = this.scene.plugins.get(
+        'rexGrayscalePipeline'
+      ) as any
+      grayscalePlugin.add(this.sprite)
+    }
+
     this.timerBar = this.scene.add
       .rectangle(
         this.sprite.x - this.sprite.displayWidth / 2,

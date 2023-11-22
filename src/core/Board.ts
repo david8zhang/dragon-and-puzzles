@@ -51,6 +51,9 @@ export class Board {
     let xPos = Board.GRID_TOP_LEFT_X
     let yPos = Board.GRID_TOP_LEFT_Y
     const elementsForLevel = this.getElementsForLevel()
+    const lockedElements = Constants.ALL_ELEMENTS.filter(
+      (el) => !elementsForLevel.includes(el)
+    )
 
     for (let i = 0; i < Board.BOARD_HEIGHT; i++) {
       const orbRow: Orb[] = []
@@ -79,6 +82,13 @@ export class Board {
 
         this.boardPanels.add(boardPanel)
 
+        let randomElement = Phaser.Utils.Array.GetRandom(elementsForLevel)
+        let isDeactivated = false
+        if (randomElement == Elements.NONE) {
+          isDeactivated = true
+          randomElement = Phaser.Utils.Array.GetRandom(lockedElements)
+        }
+
         const orb = new Orb(this.scene, {
           id: Phaser.Utils.String.UUID(),
           position: {
@@ -86,8 +96,9 @@ export class Board {
             y: cell.centerY,
           },
           radius: Board.CELL_SIZE / 2 - 10,
-          element: Phaser.Utils.Array.GetRandom(elementsForLevel),
+          element: randomElement,
           board: this,
+          isDeactivated,
         })
         orbRow[j] = orb
         gridRow[j] = cell
@@ -354,10 +365,22 @@ export class Board {
   generateOrbsToFillEmptySlots(allEmptySlots: BoardPosition[][]) {
     let timeUntilLastOrbFalls = 0
     const elementsForLevel = this.getElementsForLevel()
+    const lockedElements = Constants.ALL_ELEMENTS.filter(
+      (el) => !elementsForLevel.includes(el)
+    )
+
     allEmptySlots.forEach((column) => {
       let yPos = Board.GRID_TOP_LEFT_Y - 25
       column.forEach((slot) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
+
+        let randomElement = Phaser.Utils.Array.GetRandom(elementsForLevel)
+        let isDeactivated = false
+        if (randomElement == Elements.NONE) {
+          isDeactivated = true
+          randomElement = Phaser.Utils.Array.GetRandom(lockedElements)
+        }
+
         const newOrb = new Orb(this.scene, {
           position: {
             x: worldPosForRowCol!.centerX,
@@ -365,7 +388,8 @@ export class Board {
           },
           id: Phaser.Utils.String.UUID(),
           radius: Board.CELL_SIZE / 2 - 10,
-          element: Phaser.Utils.Array.GetRandom(elementsForLevel),
+          element: randomElement,
+          isDeactivated,
           board: this,
           currCell: {
             row: slot.row,
