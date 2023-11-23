@@ -45,7 +45,14 @@ export class Preload extends Phaser.Scene {
         frameHeight: 192,
       }
     )
-    this.load.image('rainbow-dragon-eye', 'dragons/rainbow-dragon-eye.png')
+    this.load.spritesheet(
+      'rainbow-dragon-eye',
+      'dragons/rainbow-dragon-eye.png',
+      {
+        frameWidth: 192,
+        frameHeight: 192,
+      }
+    )
 
     this.load.image('heart', 'ui/heart.png')
     this.load.image('gameover', 'ui/gameover.png')

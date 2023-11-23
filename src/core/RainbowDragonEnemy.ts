@@ -22,7 +22,6 @@ export class RainbowDragonEnemy extends Enemy {
 
   constructor(game: Game, config: EnemyConfig) {
     super(game, config)
-
     this.scaleSprite1 = this.game.add
       .sprite(
         Enemy.POSITION.x,
@@ -53,7 +52,8 @@ export class RainbowDragonEnemy extends Enemy {
     this.addTurnEndListener(() => {
       this.morphToRandomElement()
     })
-    this.startAnimatingScales()
+    this.setupScaleAndEyeAnimations()
+    this.setupRainbowScales()
   }
 
   protected override setupAnimations(spriteName: string): void {
@@ -74,28 +74,91 @@ export class RainbowDragonEnemy extends Enemy {
     this.sprite.on('animationupdate', () => {
       this.boingSprite()
     })
+    this.sprite.on('animationstart', () => {
+      this.scaleSprite1.play('attack')
+      this.scaleSprite2.play('attack')
+      this.eyeSprite.play('attack')
+    })
+  }
+  protected override boingSprite() {
+    this.game.tweens.addCounter({
+      from: 1,
+      to: 0,
+      duration: 200,
+      ease: 'back.out',
+      onUpdate: (tween) => {
+        this.sprite.scaleX = 2 + tween.getValue() * 0.1
+        this.sprite.scaleY = 2 - tween.getValue() * 0.1
+        this.scaleSprite1.scaleX = 2 + tween.getValue() * 0.1
+        this.scaleSprite1.scaleY = 2 - tween.getValue() * 0.1
+        this.scaleSprite2.scaleX = 2 + tween.getValue() * 0.1
+        this.scaleSprite2.scaleY = 2 - tween.getValue() * 0.1
+        this.eyeSprite.scaleX = 2 - tween.getValue() * 0.1
+        this.eyeSprite.scaleY = 2 - tween.getValue() * 0.1
+      },
+    })
   }
 
-  startAnimatingScales() {
+  setupScaleAndEyeAnimations() {
+    const attackFramesScale1 = this.game.anims.generateFrameNumbers(
+      RainbowDragonEnemy.SCALES_SPRITE_NAME_1,
+      {
+        start: 1,
+        end: 5,
+      }
+    )
+    attackFramesScale1[0].duration = 150
+    attackFramesScale1[1].duration = 150
+    attackFramesScale1[2].duration = 150
+    attackFramesScale1[3].duration = 500
+    attackFramesScale1[4].duration = 0
+    this.scaleSprite1.anims.create({
+      key: 'attack',
+      frames: attackFramesScale1,
+    })
+    const attackFramesScale2 = this.game.anims.generateFrameNumbers(
+      RainbowDragonEnemy.SCALES_SPRITE_NAME_2,
+      {
+        start: 1,
+        end: 5,
+      }
+    )
+    attackFramesScale2[0].duration = 150
+    attackFramesScale2[1].duration = 150
+    attackFramesScale2[2].duration = 150
+    attackFramesScale2[3].duration = 500
+    attackFramesScale2[4].duration = 0
+    this.scaleSprite2.anims.create({
+      key: 'attack',
+      frames: attackFramesScale2,
+    })
+
+    const attackFramesEye = this.game.anims.generateFrameNumbers(
+      RainbowDragonEnemy.EYE_SPRITE_NAME,
+      {
+        start: 1,
+        end: 5,
+      }
+    )
+    attackFramesEye[0].duration = 150
+    attackFramesEye[1].duration = 150
+    attackFramesEye[2].duration = 150
+    attackFramesEye[3].duration = 500
+    attackFramesEye[4].duration = 0
+    this.eyeSprite.anims.create({
+      key: 'attack',
+      frames: attackFramesEye,
+    })
+  }
+
+  setupRainbowScales() {
     this.game.tweens.addCounter({
       from: 0,
       to: 100,
-      duration: 2000,
+      duration: 6000,
       repeat: -1,
       onUpdate: (tween) => {
         this.scaleSprite1.setTint(
-          Phaser.Display.Color.HSLToColor(tween.getValue() / 100, 1, 0.75).color
-        )
-      },
-    })
-
-    this.game.tweens.addCounter({
-      from: 0,
-      to: 100,
-      duration: 3000,
-      repeat: -1,
-      onUpdate: (tween) => {
-        this.scaleSprite2.setTint(
           Phaser.Display.Color.HSLToColor(tween.getValue() / 100, 1, 0.75).color
         )
       },
@@ -135,7 +198,14 @@ export class RainbowDragonEnemy extends Enemy {
           100,
           value
         )
-        this.sprite.setTint(
+        this.scaleSprite2.setTint(
+          Phaser.Display.Color.GetColor(
+            colorObject.r,
+            colorObject.g,
+            colorObject.b
+          )
+        )
+        this.eyeSprite.setTint(
           Phaser.Display.Color.GetColor(
             colorObject.r,
             colorObject.g,
@@ -146,6 +216,19 @@ export class RainbowDragonEnemy extends Enemy {
       onComplete: () => {
         this.element = randomElement
       },
+    })
+  }
+
+  protected override endTurn() {
+    this.sprite.setFrame(0)
+    this.scaleSprite1.setFrame(0)
+    this.scaleSprite2.setFrame(0)
+    this.eyeSprite.setFrame(0)
+    this.game.time.delayedCall(500, () => {
+      this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turn${
+        this.turnsUntilAttack == 1 ? '' : 's'
+      }`
+      this.turnEndListener.forEach((fn) => fn())
     })
   }
 }

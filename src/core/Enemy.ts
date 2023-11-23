@@ -124,7 +124,7 @@ export class Enemy {
     })
   }
 
-  boingSprite() {
+  protected boingSprite() {
     this.game.tweens.addCounter({
       from: -1,
       to: 1,
@@ -258,7 +258,7 @@ export class Enemy {
     })
   }
 
-  endTurn() {
+  protected endTurn() {
     this.sprite.setFrame(0)
     this.game.time.delayedCall(500, () => {
       this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turn${
