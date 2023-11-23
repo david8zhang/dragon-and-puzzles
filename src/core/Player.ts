@@ -26,12 +26,10 @@ export class Player {
     this.game = game
 
     // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
-    this.sprite = this.game.add
-      .sprite(175, 275, 'fire-dragon-debug')
-      .setScale(2.1)
-
-    this.setupTurnEndListener(board)
+    this.sprite = this.game.add.sprite(175, 275, 'fire-dragon').setScale(2.0)
     this.setupHealthbar()
+    this.setupTurnEndListener(board)
+    this.setupAnimations('fire-dragon')
   }
 
   setupTurnEndListener(board: Board) {
@@ -60,65 +58,37 @@ export class Player {
     )
   }
 
+  setupAnimations(spriteName: string) {
+    const attackFrames = this.game.anims.generateFrameNumbers(spriteName, {
+      start: 1,
+      end: 2,
+    })
+    this.sprite.anims.create({
+      key: 'attack',
+      frames: attackFrames,
+      frameRate: 4,
+    })
+    this.sprite.on('animationupdate', () => {
+      this.boingSprite()
+    })
+  }
+
+  // Make sprite go boing
+  boingSprite() {
+    this.game.tweens.addCounter({
+      from: -1,
+      to: 1,
+      duration: 200,
+      ease: 'back.out',
+      onUpdate: (tween) => {
+        this.sprite.scaleX = 2 + tween.getValue() * 0.1
+        this.sprite.scaleY = 2 - tween.getValue() * 0.1
+      },
+    })
+  }
+
   handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
-    const availableElements = this.game.board.getElementsForLevel() as string[]
-    const elements = Object.keys(dmgPerElement).filter(
-      (element) =>
-        element !== Elements.HEALTH && availableElements.includes(element)
-    )
-    const shootElementalBlast = (index: number) => {
-      if (index == elements.length) {
-        this.turnEndListener.forEach((fn) => fn())
-        return
-      }
-      const element = elements[index]
-      const attackOrb = this.game.add.sprite(
-        this.sprite.x,
-        this.sprite.y,
-        `orb-${element}`
-      )
-      this.game.tweens.add({
-        targets: [attackOrb],
-        x: {
-          from: attackOrb.x,
-          to: this.game.enemy.sprite.x,
-        },
-        y: {
-          from: attackOrb.y,
-          to: this.game.enemy.sprite.y,
-        },
-        duration: 500,
-        onComplete: () => {
-          attackOrb.destroy()
-
-          const hasElementAdv =
-            Constants.WEAKNESS_MAP[this.game.enemy.element].includes(element)
-          const hasElementDisadv =
-            Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
-          if (hasElementAdv) {
-            this.game.sound.play('effective-attack')
-            this.game.cameras.main.shake(250, 0.005)
-          } else if (hasElementDisadv) {
-            this.game.sound.play('weak-attack')
-          } else {
-            this.game.sound.play('basic-attack')
-          }
-
-          UINumber.createNumber(
-            `${dmgPerElement[element]}`,
-            this.game,
-            this.game.enemy.sprite.x,
-            this.game.enemy.sprite.y,
-            `#${Constants.ELEMENT_TO_COLOR[element]}`,
-            hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
-          )
-          this.game.enemy.damage(dmgPerElement[element])
-          shootElementalBlast(index + 1)
-        },
-      })
-    }
-    shootElementalBlast(0)
-
+    this.playAttackAnimation(0, dmgPerElement)
     // Handle heals
     if (dmgPerElement[Elements.HEALTH] != undefined) {
       const healAmount = dmgPerElement[Elements.HEALTH]
@@ -134,6 +104,81 @@ export class Player {
         '20px'
       )
     }
+  }
+
+  playAttackAnimation(
+    index: number,
+    dmgPerElement: { [key in Elements]?: number }
+  ) {
+    const elements = Object.keys(dmgPerElement).filter(
+      (element) => element !== Elements.HEALTH && element !== Elements.NONE
+    )
+    console.log('index:', index)
+    if (index == elements.length) {
+      this.turnEndListener.forEach((fn) => fn())
+      this.sprite.setFrame(0)
+      console.log('end')
+      return
+    }
+    this.sprite.play('attack')
+    this.sprite.on('animationcomplete', () => {
+      this.shootElementalBlast(index, dmgPerElement)
+      this.sprite.removeAllListeners('animationcomplete')
+    })
+  }
+
+  shootElementalBlast(
+    index: number,
+    dmgPerElement: { [key in Elements]?: number }
+  ) {
+    const elements = Object.keys(dmgPerElement).filter(
+      (element) => element !== Elements.HEALTH && element !== Elements.NONE
+    )
+    const element = elements[index]
+    const attackOrb = this.game.add.sprite(
+      this.sprite.x,
+      this.sprite.y,
+      `orb-${element}`
+    )
+    this.game.tweens.add({
+      targets: [attackOrb],
+      x: {
+        from: attackOrb.x,
+        to: this.game.enemy.sprite.x,
+      },
+      y: {
+        from: attackOrb.y,
+        to: this.game.enemy.sprite.y,
+      },
+      duration: 500,
+      onComplete: () => {
+        attackOrb.destroy()
+
+        const hasElementAdv =
+          Constants.WEAKNESS_MAP[this.game.enemy.element].includes(element)
+        const hasElementDisadv =
+          Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
+        if (hasElementAdv) {
+          this.game.sound.play('effective-attack')
+          this.game.cameras.main.shake(250, 0.005)
+        } else if (hasElementDisadv) {
+          this.game.sound.play('weak-attack')
+        } else {
+          this.game.sound.play('basic-attack')
+        }
+
+        UINumber.createNumber(
+          `${dmgPerElement[element]}`,
+          this.game,
+          this.game.enemy.sprite.x,
+          this.game.enemy.sprite.y,
+          `#${Constants.ELEMENT_TO_COLOR[element]}`,
+          hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
+        )
+        this.game.enemy.damage(dmgPerElement[element])
+        this.playAttackAnimation(index + 1, dmgPerElement)
+      },
+    })
   }
 
   damage(amount: number) {

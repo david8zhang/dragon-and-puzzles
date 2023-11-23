@@ -16,35 +16,35 @@ export interface EnemyConfig {
 export const ENEMIES: EnemyConfig[] = [
   {
     maxHealth: 75,
-    spriteName: 'green-dragon-debug',
+    spriteName: 'green-dragon',
     element: Elements.GRASS,
     baseDamage: 10,
     maxTurnsUntilAttack: 4,
   },
   {
     maxHealth: 125,
-    spriteName: 'water-dragon-debug',
+    spriteName: 'water-dragon',
     element: Elements.WATER,
     baseDamage: 15,
     maxTurnsUntilAttack: 3,
   },
   {
     maxHealth: 150,
-    spriteName: 'light-dragon-debug',
+    spriteName: 'light-dragon',
     element: Elements.LIGHT,
     baseDamage: 20,
     maxTurnsUntilAttack: 3,
   },
   {
     maxHealth: 150,
-    spriteName: 'dark-dragon-debug',
+    spriteName: 'dark-dragon',
     element: Elements.DARK,
     baseDamage: 20,
     maxTurnsUntilAttack: 3,
   },
   {
     maxHealth: 200,
-    spriteName: 'rainbow-debug',
+    spriteName: 'rainbow-dragon',
     element: Elements.ALL,
     baseDamage: 25,
     maxTurnsUntilAttack: 2,
@@ -63,7 +63,6 @@ export class Enemy {
   public sprite: Phaser.GameObjects.Sprite
   public element!: Elements
 
-  protected isRainbow: boolean = false
   protected game: Game
   protected turnsUntilAttack: number = 1
   protected maxTurnsUntilAttack: number = 3
@@ -86,8 +85,9 @@ export class Enemy {
     // Set up sprite
     // TODO: add animations for enemy
     this.sprite = this.game.add
-      .sprite(Enemy.POSITION.x, Enemy.POSITION.y, config.spriteName)
-      .setScale(2.1)
+      .sprite(Enemy.POSITION.x, Enemy.POSITION.y, config.spriteName, 0)
+      .setScale(2)
+    this.setupAnimations(config.spriteName)
 
     // Set up next move text
     // TODO: Refactor this into its own fn?
@@ -111,57 +111,35 @@ export class Enemy {
     this.animateNextMoveText()
 
     // If this is the rainbow dragon, pick a random element and change the tint
-    if (config.element === Elements.ALL) {
-      this.isRainbow = true
-      this.morphToRandomElement()
-    } else {
+    if (config.element !== Elements.ALL) {
       this.element = config.element
     }
   }
 
-  morphToRandomElement() {
-    const eligibleElements = [
-      Elements.FIRE,
-      Elements.WATER,
-      Elements.DARK,
-      Elements.LIGHT,
-      Elements.GRASS,
-    ]
+  setupAnimations(spriteName: string) {
+    const attackFrames = this.game.anims.generateFrameNumbers(spriteName, {
+      start: 1,
+      end: 2,
+    })
+    this.sprite.anims.create({
+      key: 'attack',
+      frames: attackFrames,
+      frameRate: 4,
+    })
+    this.sprite.on('animationupdate', () => {
+      this.boingSprite()
+    })
+  }
 
-    const currColor = Constants.ELEMENT_TO_COLOR[this.element]
-    const randomElement = Phaser.Utils.Array.GetRandom(eligibleElements)
-    const newColor = Constants.ELEMENT_TO_COLOR[randomElement]
-
-    const oldColorObj = Phaser.Display.Color.ValueToColor(
-      Number.parseInt(`0x${currColor}`, 16)
-    )
-    const newColorObj = Phaser.Display.Color.ValueToColor(
-      Number.parseInt(`0x${newColor}`, 16)
-    )
-
+  boingSprite() {
     this.game.tweens.addCounter({
-      from: 0,
-      to: 100,
-      duration: 500,
-      ease: Phaser.Math.Easing.Sine.InOut,
+      from: -1,
+      to: 1,
+      duration: 200,
+      ease: 'back.out',
       onUpdate: (tween) => {
-        const value = tween.getValue()
-        const colorObject = Phaser.Display.Color.Interpolate.ColorWithColor(
-          oldColorObj,
-          newColorObj,
-          100,
-          value
-        )
-        this.sprite.setTint(
-          Phaser.Display.Color.GetColor(
-            colorObject.r,
-            colorObject.g,
-            colorObject.b
-          )
-        )
-      },
-      onComplete: () => {
-        this.element = randomElement
+        this.sprite.scaleX = 2 + tween.getValue() * 0.1
+        this.sprite.scaleY = 2 - tween.getValue() * 0.1
       },
     })
   }
@@ -243,51 +221,52 @@ export class Enemy {
 
     this.turnsUntilAttack--
     if (this.turnsUntilAttack === 0) {
-      const attackOrb = this.game.add
-        .sprite(this.sprite.x, this.sprite.y, `orb-${this.element}`)
-        .setDepth(1000)
-      this.game.tweens.add({
-        targets: [attackOrb],
-        duration: 500,
-        x: {
-          from: this.sprite.x,
-          to: this.game.player.sprite.x,
-        },
-        y: {
-          from: this.sprite.y,
-          to: this.game.player.sprite.y,
-        },
-        onComplete: () => {
-          attackOrb.destroy()
-          this.attackListener.forEach((fn) => fn(this.baseDamage)) // deal 10 damage
-          this.turnsUntilAttack = Phaser.Math.Between(
-            1,
-            this.maxTurnsUntilAttack
-          )
-          this.game.sound.play('basic-attack')
-          UINumber.createNumber(
-            `${this.baseDamage}`,
-            this.game,
-            this.game.player.sprite.x,
-            this.game.player.sprite.y,
-            'white',
-            '25px'
-          )
-
-          // If the enemy is the rainbow dragon, change the typing every time it attacks
-          if (this.isRainbow) {
-            this.morphToRandomElement()
-          }
-
-          this.endTurn()
-        },
+      // attack animation
+      this.sprite.play('attack')
+      this.sprite.on('animationcomplete', () => {
+        this.attack()
+        this.sprite.removeAllListeners('animationcomplete')
       })
     } else {
       this.endTurn()
     }
   }
 
+  attack() {
+    const attackOrb = this.game.add
+      .sprite(this.sprite.x, this.sprite.y, `orb-${this.element}`)
+      .setDepth(1000)
+    this.game.tweens.add({
+      targets: [attackOrb],
+      duration: 500,
+      x: {
+        from: this.sprite.x,
+        to: this.game.player.sprite.x,
+      },
+      y: {
+        from: this.sprite.y,
+        to: this.game.player.sprite.y,
+      },
+      onComplete: () => {
+        attackOrb.destroy()
+        this.attackListener.forEach((fn) => fn(this.baseDamage)) // deal 10 damage
+        this.turnsUntilAttack = Phaser.Math.Between(1, this.maxTurnsUntilAttack)
+        this.game.sound.play('basic-attack')
+        UINumber.createNumber(
+          `${this.baseDamage}`,
+          this.game,
+          this.game.player.sprite.x,
+          this.game.player.sprite.y,
+          'white',
+          '25px'
+        )
+        this.endTurn()
+      },
+    })
+  }
+
   endTurn() {
+    this.sprite.setFrame(0)
     this.game.time.delayedCall(500, () => {
       this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turn${
         this.turnsUntilAttack == 1 ? '' : 's'
