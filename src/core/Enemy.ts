@@ -42,13 +42,6 @@ export const ENEMIES: EnemyConfig[] = [
     baseDamage: 20,
     maxTurnsUntilAttack: 3,
   },
-  {
-    maxHealth: 200,
-    spriteName: 'rainbow-dragon',
-    element: Elements.ALL,
-    baseDamage: 25,
-    maxTurnsUntilAttack: 2,
-  },
 ]
 
 export class Enemy {
@@ -116,7 +109,7 @@ export class Enemy {
     }
   }
 
-  setupAnimations(spriteName: string) {
+  protected setupAnimations(spriteName: string) {
     const attackFrames = this.game.anims.generateFrameNumbers(spriteName, {
       start: 1,
       end: 2,

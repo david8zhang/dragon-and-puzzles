@@ -113,11 +113,9 @@ export class Player {
     const elements = Object.keys(dmgPerElement).filter(
       (element) => element !== Elements.HEALTH && element !== Elements.NONE
     )
-    console.log('index:', index)
     if (index == elements.length) {
       this.turnEndListener.forEach((fn) => fn())
       this.sprite.setFrame(0)
-      console.log('end')
       return
     }
     this.sprite.play('attack')

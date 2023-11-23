@@ -25,24 +25,24 @@ export class Preload extends Phaser.Scene {
       frameWidth: 128,
       frameHeight: 128,
     })
-    this.load.spritesheet('rainbow-dragon', 'dragons/rainbow-dragon.png', {
-      frameWidth: 196,
-      frameHeight: 196,
+    this.load.spritesheet('rainbow-dragon', 'dragons/rainbow-dragon-body.png', {
+      frameWidth: 192,
+      frameHeight: 192,
     })
     this.load.spritesheet(
       'rainbow-dragon-scales-1',
       'dragons/rainbow-dragon-scales1.png',
       {
-        frameWidth: 196,
-        frameHeight: 196,
+        frameWidth: 192,
+        frameHeight: 192,
       }
     )
     this.load.spritesheet(
       'rainbow-dragon-scales-2',
       'dragons/rainbow-dragon-scales2.png',
       {
-        frameWidth: 196,
-        frameHeight: 196,
+        frameWidth: 192,
+        frameHeight: 192,
       }
     )
     this.load.image('rainbow-dragon-eye', 'dragons/rainbow-dragon-eye.png')

@@ -3,11 +3,12 @@ import { Board } from '~/core/Board'
 import { Button } from '~/core/Button'
 import { ENEMIES, Enemy } from '~/core/Enemy'
 import { Player } from '~/core/Player'
+import { RainbowDragonEnemy } from '~/core/RainbowDragonEnemy'
 import { Constants } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
   public board!: Board
-  public level: number = 1
+  public level: number = 4
   public player!: Player
   public enemy!: Enemy
 
@@ -48,7 +49,12 @@ export class Game extends Phaser.Scene {
     this.board = new Board(this)
 
     this.player = new Player(this, this.board)
-    this.enemy = new Enemy(this, ENEMIES[this.level])
+    // if (this.level == 0) {
+    if (this.level >= ENEMIES.length) {
+      this.enemy = new RainbowDragonEnemy(this, RainbowDragonEnemy.CONFIG)
+    } else {
+      this.enemy = new Enemy(this, ENEMIES[this.level])
+    }
 
     this.player.addTurnEndListener(() => {
       this.time.delayedCall(500, () => {

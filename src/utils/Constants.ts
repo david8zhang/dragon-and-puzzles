@@ -23,13 +23,13 @@ export class Constants {
   }
 
   public static ELEMENT_TO_COLOR = {
-    [Elements.FIRE]: 'dc1600',
-    [Elements.WATER]: '1940cf',
-    [Elements.GRASS]: '109e00',
-    [Elements.LIGHT]: 'fff415',
-    [Elements.DARK]: '6c0b93',
-    [Elements.HEALTH]: 'ff169d',
-    [Elements.ALL]: 'ffffff',
+    [Elements.FIRE]: 'ff977d', // #ff977d
+    [Elements.WATER]: '7d8eff', // #7d8eff
+    [Elements.GRASS]: '8cff7d', // #8cff7d
+    [Elements.LIGHT]: 'fbff7d', // #fbff7d
+    [Elements.DARK]: 'f67dff', // #f67dff
+    [Elements.HEALTH]: 'ff169d', // #ff169d
+    [Elements.ALL]: 'ffffff', // #ffffff
   }
 
   public static ALL_ELEMENTS = [
