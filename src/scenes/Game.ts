@@ -70,7 +70,7 @@ export class Game extends Phaser.Scene {
       .image(0, 0, 'background')
       .setDisplaySize(Constants.WINDOW_WIDTH, 375)
       .setOrigin(0, 0)
-      .setDepth(this.player.sprite.depth - 1)
+      .setDepth(Constants.SORT_ORDER.background)
 
     this.enemy.addOnDiedListener(() => {
       this.transitionToNextEnemy()

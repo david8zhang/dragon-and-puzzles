@@ -4,6 +4,8 @@ import { Game } from '~/scenes/Game'
 import { Healthbar } from './Healthbar'
 import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
+import { AnimatedSprite } from './AnimatedSprite'
+import { Player } from './Player'
 
 export interface EnemyConfig {
   maxHealth: number
@@ -45,7 +47,7 @@ export const ENEMIES: EnemyConfig[] = [
 ]
 
 export class Enemy {
-  protected static readonly POSITION: { x: number; y: number } = {
+  public static readonly POSITION: { x: number; y: number } = {
     x: 465,
     y: 125,
   }
@@ -53,7 +55,7 @@ export class Enemy {
   public readonly maxHealth: number
   public health: number
   public healthBar!: Healthbar
-  public sprite: Phaser.GameObjects.Sprite
+  public sprite: AnimatedSprite
   public element!: Elements
 
   protected game: Game
@@ -75,12 +77,7 @@ export class Enemy {
     this.maxTurnsUntilAttack = config.maxTurnsUntilAttack
     this.setupHealthbar()
 
-    // Set up sprite
-    // TODO: add animations for enemy
-    this.sprite = this.game.add
-      .sprite(Enemy.POSITION.x, Enemy.POSITION.y, config.spriteName, 0)
-      .setScale(2)
-    this.setupAnimations(config.spriteName)
+    this.sprite = this.setupSprite(config)
 
     // Set up next move text
     // TODO: Refactor this into its own fn?
@@ -96,6 +93,7 @@ export class Enemy {
         fontSize: '20px',
       })
       .setStroke('#000000', 5)
+      .setDepth(Constants.SORT_ORDER.ui)
     // Center align text
     this.nextMoveText.setPosition(
       this.nextMoveText.x - this.nextMoveText.displayWidth / 2,
@@ -109,31 +107,16 @@ export class Enemy {
     }
   }
 
-  protected setupAnimations(spriteName: string) {
-    const attackFrames = this.game.anims.generateFrameNumbers(spriteName, {
-      start: 1,
-      end: 2,
-    })
-    this.sprite.anims.create({
-      key: 'attack',
-      frames: attackFrames,
-      frameRate: 4,
-    })
-    this.sprite.on('animationupdate', () => {
-      this.boingSprite()
-    })
-  }
-
-  protected boingSprite() {
-    this.game.tweens.addCounter({
-      from: -1,
-      to: 1,
-      duration: 200,
-      ease: 'back.out',
-      onUpdate: (tween) => {
-        this.sprite.scaleX = 2 + tween.getValue() * 0.1
-        this.sprite.scaleY = 2 - tween.getValue() * 0.1
+  protected setupSprite(config: EnemyConfig): AnimatedSprite {
+    return new AnimatedSprite(this.game, {
+      spriteNames: [config.spriteName],
+      position: {
+        x: Enemy.POSITION.x,
+        y: Enemy.POSITION.y,
       },
+      startFrame: 1,
+      endFrame: 2,
+      frameDurations: [250, 0],
     })
   }
 
@@ -183,26 +166,30 @@ export class Enemy {
 
   damage(amount: number): void {
     this.health = Math.max(0, this.health - amount)
+
     this.healthBar.draw()
   }
 
   handleDeath() {
-    this.game.tweens.add({
-      targets: this.sprite,
-      onStart: () => {
-        this.nextMoveText.setVisible(false)
-      },
-      alpha: {
-        from: 1,
-        to: 0,
-      },
-      duration: 1000,
-      onComplete: () => {
-        this.game.time.delayedCall(500, () => {
-          this.onDiedListener.forEach((fn) => fn())
-        })
-      },
+    this.nextMoveText.setVisible(false)
+    this.sprite.fade(() => {
+      this.game.time.delayedCall(500, () => {
+        this.onDiedListener.forEach((fn) => fn())
+      })
     })
+    // this.game.tweens.add({
+    //   targets: this.sprite,
+    //   alpha: {
+    //     from: 1,
+    //     to: 0,
+    //   },
+    //   duration: 1000,
+    //   onComplete: () => {
+    //     this.game.time.delayedCall(500, () => {
+    //       this.onDiedListener.forEach((fn) => fn())
+    //     })
+    //   },
+    // })
   }
 
   async takeTurn(): Promise<void> {
@@ -215,11 +202,7 @@ export class Enemy {
     this.turnsUntilAttack--
     if (this.turnsUntilAttack === 0) {
       // attack animation
-      this.sprite.play('attack')
-      this.sprite.on('animationcomplete', () => {
-        this.attack()
-        this.sprite.removeAllListeners('animationcomplete')
-      })
+      this.sprite.play(() => this.attack())
     } else {
       this.endTurn()
     }
@@ -227,18 +210,18 @@ export class Enemy {
 
   attack() {
     const attackOrb = this.game.add
-      .sprite(this.sprite.x, this.sprite.y, `orb-${this.element}`)
+      .sprite(Enemy.POSITION.x, Enemy.POSITION.y, `orb-${this.element}`)
       .setDepth(1000)
     this.game.tweens.add({
       targets: [attackOrb],
       duration: 500,
       x: {
-        from: this.sprite.x,
-        to: this.game.player.sprite.x,
+        from: Enemy.POSITION.x,
+        to: Player.POSITION.x,
       },
       y: {
-        from: this.sprite.y,
-        to: this.game.player.sprite.y,
+        from: Enemy.POSITION.y,
+        to: Player.POSITION.y,
       },
       onComplete: () => {
         attackOrb.destroy()
@@ -248,8 +231,8 @@ export class Enemy {
         UINumber.createNumber(
           `${this.baseDamage}`,
           this.game,
-          this.game.player.sprite.x,
-          this.game.player.sprite.y,
+          Player.POSITION.x,
+          Player.POSITION.y,
           'white',
           '25px'
         )
@@ -259,7 +242,7 @@ export class Enemy {
   }
 
   protected endTurn() {
-    this.sprite.setFrame(0)
+    this.sprite.reset()
     this.game.time.delayedCall(500, () => {
       this.nextMoveText.text = `Attacks in ${this.turnsUntilAttack} turn${
         this.turnsUntilAttack == 1 ? '' : 's'

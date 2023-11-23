@@ -5,13 +5,19 @@ import { Healthbar } from './Healthbar'
 import { Board } from './Board'
 import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
+import { Enemy } from './Enemy'
+import { AnimatedSprite } from './AnimatedSprite'
 
 export class Player {
+  public static readonly POSITION: { x: number; y: number } = {
+    x: 175,
+    y: 275,
+  }
   private static readonly MAX_HEALTH: number = 100
 
   private game: Game
   public element: Elements = Elements.FIRE
-  public sprite: Phaser.GameObjects.Sprite
+  public sprite: AnimatedSprite
 
   public readonly maxHealth: number = Player.MAX_HEALTH
   public health: number = this.maxHealth
@@ -26,10 +32,16 @@ export class Player {
     this.game = game
 
     // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
-    this.sprite = this.game.add.sprite(175, 275, 'fire-dragon').setScale(2.0)
+    this.sprite = new AnimatedSprite(this.game, {
+      spriteNames: ['fire-dragon'],
+      position: Player.POSITION,
+      startFrame: 1,
+      endFrame: 2,
+      frameDurations: [250, 0],
+    })
+
     this.setupHealthbar()
     this.setupTurnEndListener(board)
-    this.setupAnimations('fire-dragon')
   }
 
   setupTurnEndListener(board: Board) {
@@ -49,7 +61,7 @@ export class Player {
         // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
         position: {
           x: 300,
-          y: this.sprite.y + 50,
+          y: Player.POSITION.y + 50,
         },
         length: 200,
         width: 15,
@@ -58,37 +70,8 @@ export class Player {
     )
   }
 
-  setupAnimations(spriteName: string) {
-    const attackFrames = this.game.anims.generateFrameNumbers(spriteName, {
-      start: 1,
-      end: 2,
-    })
-    this.sprite.anims.create({
-      key: 'attack',
-      frames: attackFrames,
-      frameRate: 4,
-    })
-    this.sprite.on('animationupdate', () => {
-      this.boingSprite()
-    })
-  }
-
-  // Make sprite go boing
-  boingSprite() {
-    this.game.tweens.addCounter({
-      from: -1,
-      to: 1,
-      duration: 200,
-      ease: 'back.out',
-      onUpdate: (tween) => {
-        this.sprite.scaleX = 2 + tween.getValue() * 0.1
-        this.sprite.scaleY = 2 - tween.getValue() * 0.1
-      },
-    })
-  }
-
   handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
-    this.playAttackAnimation(0, dmgPerElement)
+    this.attack(0, dmgPerElement)
     // Handle heals
     if (dmgPerElement[Elements.HEALTH] != undefined) {
       const healAmount = dmgPerElement[Elements.HEALTH]
@@ -98,31 +81,24 @@ export class Player {
       UINumber.createNumber(
         `+${healAmount}`,
         this.game,
-        this.sprite.x,
-        this.sprite.y,
+        Player.POSITION.x,
+        Player.POSITION.y,
         'white',
         '20px'
       )
     }
   }
 
-  playAttackAnimation(
-    index: number,
-    dmgPerElement: { [key in Elements]?: number }
-  ) {
+  private attack(index: number, dmgPerElement: { [key in Elements]?: number }) {
     const elements = Object.keys(dmgPerElement).filter(
       (element) => element !== Elements.HEALTH && element !== Elements.NONE
     )
     if (index == elements.length) {
       this.turnEndListener.forEach((fn) => fn())
-      this.sprite.setFrame(0)
+      this.sprite.reset()
       return
     }
-    this.sprite.play('attack')
-    this.sprite.on('animationcomplete', () => {
-      this.shootElementalBlast(index, dmgPerElement)
-      this.sprite.removeAllListeners('animationcomplete')
-    })
+    this.sprite.play(() => this.shootElementalBlast(index, dmgPerElement))
   }
 
   shootElementalBlast(
@@ -134,19 +110,19 @@ export class Player {
     )
     const element = elements[index]
     const attackOrb = this.game.add.sprite(
-      this.sprite.x,
-      this.sprite.y,
+      Player.POSITION.x,
+      Player.POSITION.y,
       `orb-${element}`
     )
     this.game.tweens.add({
       targets: [attackOrb],
       x: {
         from: attackOrb.x,
-        to: this.game.enemy.sprite.x,
+        to: Enemy.POSITION.x,
       },
       y: {
         from: attackOrb.y,
-        to: this.game.enemy.sprite.y,
+        to: Enemy.POSITION.y,
       },
       duration: 500,
       onComplete: () => {
@@ -168,13 +144,13 @@ export class Player {
         UINumber.createNumber(
           `${dmgPerElement[element]}`,
           this.game,
-          this.game.enemy.sprite.x,
-          this.game.enemy.sprite.y,
+          Enemy.POSITION.x,
+          Enemy.POSITION.y,
           `#${Constants.ELEMENT_TO_COLOR[element]}`,
           hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
         )
         this.game.enemy.damage(dmgPerElement[element])
-        this.playAttackAnimation(index + 1, dmgPerElement)
+        this.attack(index + 1, dmgPerElement)
       },
     })
   }

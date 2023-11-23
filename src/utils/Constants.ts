@@ -15,9 +15,8 @@ export class Constants {
   public static MOVE_TIME_LIMIT = 8 // Time to move orbs (in seconds)
 
   public static SORT_ORDER = {
-    background: 100,
-    enemy: 300,
-    player: 400,
+    background: -100,
+    characters: 400,
     ui: 500,
     top: 600,
   }
