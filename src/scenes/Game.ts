@@ -1,8 +1,10 @@
 import Phaser from 'phaser'
+import { BattleUI } from '~/core/BattleUI'
 import { Board } from '~/core/Board'
 import { Button } from '~/core/Button'
 import { ENEMIES, Enemy } from '~/core/Enemy'
 import { Player } from '~/core/Player'
+import { RainbowDragonEnemy } from '~/core/RainbowDragonEnemy'
 import { Constants } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
@@ -35,6 +37,7 @@ export class Game extends Phaser.Scene {
 
   create() {
     this.initPlugins()
+    new BattleUI(this)
     if (this.level < 4) {
       this.sound.stopAll()
 
@@ -44,11 +47,16 @@ export class Game extends Phaser.Scene {
         this.sound.play('level-2', { loop: true, volume: 0.25 })
       }
     }
-    this.cameras.main.setBackgroundColor(0x369f5c)
+    this.cameras.main.setBackgroundColor(0x000000)
     this.board = new Board(this)
 
     this.player = new Player(this, this.board)
-    this.enemy = new Enemy(this, ENEMIES[this.level])
+    // if (this.level == 0) {
+    if (this.level >= ENEMIES.length) {
+      this.enemy = new RainbowDragonEnemy(this, RainbowDragonEnemy.CONFIG)
+    } else {
+      this.enemy = new Enemy(this, ENEMIES[this.level])
+    }
 
     this.player.addTurnEndListener(() => {
       this.time.delayedCall(500, () => {
@@ -58,13 +66,6 @@ export class Game extends Phaser.Scene {
 
     this.enemy.addAttackListener((dmgAmount) => this.player.damage(dmgAmount))
     this.enemy.addTurnEndListener(() => this.board.setDisabled(false))
-
-    // Add BG image
-    this.add
-      .image(0, 0, 'background')
-      .setDisplaySize(Constants.WINDOW_WIDTH, 375)
-      .setOrigin(0, 0)
-      .setDepth(this.player.sprite.depth - 1)
 
     this.enemy.addOnDiedListener(() => {
       this.transitionToNextEnemy()
@@ -130,7 +131,7 @@ export class Game extends Phaser.Scene {
         this.transitionSubtitleText.setVisible(false)
         this.continueButton.setVisible(false)
         this.transitionOrbUnlocked.setVisible(false)
-        if (this.level === ENEMIES.length - 2) {
+        if (this.level === ENEMIES.length - 1) {
           this.game.scene.start('victory', { isPreBoss: true })
         } else {
           this.game.scene.start('game', { level: this.level + 1 })
@@ -183,7 +184,7 @@ export class Game extends Phaser.Scene {
   }
 
   transitionToNextEnemy() {
-    if (this.level === ENEMIES.length - 1) {
+    if (this.level >= ENEMIES.length) {
       this.game.scene.start('victory', { isPreBoss: false })
     } else {
       this.displayTransitionOverlay()

@@ -4,13 +4,55 @@ export class Preload extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('green-dragon-debug', 'dragons/flygon.png')
-    this.load.image('fire-dragon-debug', 'dragons/charizard.png')
-    this.load.image('water-dragon-debug', 'dragons/gyarados.png')
-    this.load.image('light-dragon-debug', 'dragons/dragonite.png')
-    this.load.image('dark-dragon-debug', 'dragons/hydreigon.png')
-    this.load.image('rainbow-debug', 'dragons/reshiram.png')
     this.load.image('tutorial-debug', 'dragons/axew.png')
+    this.load.spritesheet('green-dragon', 'dragons/grass-dragon.png', {
+      frameWidth: 128,
+      frameHeight: 128,
+    })
+    this.load.spritesheet('fire-dragon', 'dragons/fire-dragon.png', {
+      frameWidth: 128,
+      frameHeight: 128,
+    })
+    this.load.spritesheet('water-dragon', 'dragons/water-dragon.png', {
+      frameWidth: 128,
+      frameHeight: 128,
+    })
+    this.load.spritesheet('light-dragon', 'dragons/light-dragon.png', {
+      frameWidth: 128,
+      frameHeight: 128,
+    })
+    this.load.spritesheet('dark-dragon', 'dragons/dark-dragon.png', {
+      frameWidth: 128,
+      frameHeight: 128,
+    })
+    this.load.spritesheet('rainbow-dragon', 'dragons/rainbow-dragon-body.png', {
+      frameWidth: 192,
+      frameHeight: 192,
+    })
+    this.load.spritesheet(
+      'rainbow-dragon-scales-1',
+      'dragons/rainbow-dragon-scales1.png',
+      {
+        frameWidth: 192,
+        frameHeight: 192,
+      }
+    )
+    this.load.spritesheet(
+      'rainbow-dragon-scales-2',
+      'dragons/rainbow-dragon-scales2.png',
+      {
+        frameWidth: 192,
+        frameHeight: 192,
+      }
+    )
+    this.load.spritesheet(
+      'rainbow-dragon-eye',
+      'dragons/rainbow-dragon-eye.png',
+      {
+        frameWidth: 192,
+        frameHeight: 192,
+      }
+    )
 
     this.load.image('heart', 'ui/heart.png')
     this.load.image('gameover', 'ui/gameover.png')
@@ -25,6 +67,11 @@ export class Preload extends Phaser.Scene {
     this.load.image('orb-light', 'orbs/orb-light.png')
     this.load.image('orb-dark', 'orbs/orb-dark.png')
     this.load.image('orb-health', 'orbs/orb-health.png')
+
+    this.load.image('orb-water-disabled', 'orbs/orb-water-disabled.png')
+    this.load.image('orb-grass-disabled', 'orbs/orb-grass-disabled.png')
+    this.load.image('orb-light-disabled', 'orbs/orb-light-disabled.png')
+    this.load.image('orb-dark-disabled', 'orbs/orb-dark-disabled.png')
 
     // BGM
     this.load.audio('start', 'audio/bgm/start.mp3')
@@ -48,6 +95,6 @@ export class Preload extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start('start')
+    this.scene.start('tutorial')
   }
 }

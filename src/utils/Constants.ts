@@ -15,21 +15,24 @@ export class Constants {
   public static MOVE_TIME_LIMIT = 8 // Time to move orbs (in seconds)
 
   public static SORT_ORDER = {
-    background: 100,
-    enemy: 300,
-    player: 400,
+    background: -100,
+    characters: 400,
     ui: 500,
     top: 600,
   }
 
+  public static HEAL_MULTIPLIER = 2
+
+  public static ORB_MOVE_SPEED = 0.35
+
   public static ELEMENT_TO_COLOR = {
-    [Elements.FIRE]: 'dc1600',
-    [Elements.WATER]: '1940cf',
-    [Elements.GRASS]: '109e00',
-    [Elements.LIGHT]: 'fff415',
-    [Elements.DARK]: '6c0b93',
-    [Elements.HEALTH]: 'ff169d',
-    [Elements.ALL]: 'ffffff',
+    [Elements.FIRE]: 'dc1600', // #dc1600
+    [Elements.WATER]: '2d7eff', // #2d7eff
+    [Elements.GRASS]: '109e00', // #109e00
+    [Elements.LIGHT]: 'fff415', // #fff415
+    [Elements.DARK]: 'd65dff', // #d65dff
+    [Elements.HEALTH]: 'ff169d', // #ff169d
+    [Elements.ALL]: 'ffffff', // #ffffff
   }
 
   public static ALL_ELEMENTS = [

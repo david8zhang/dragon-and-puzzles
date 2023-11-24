@@ -58,6 +58,7 @@ export class Start extends Phaser.Scene {
         this.sound.play('intro-cutscene', { volume: 0.25, loop: true })
         titleText.setVisible(false)
         startButton.setVisible(false)
+        subtitleText.setVisible(false)
         this.cutscene.setVisible(true)
       },
       width: 200,

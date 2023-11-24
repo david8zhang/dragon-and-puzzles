@@ -18,14 +18,13 @@ export class TutorialEnemy extends Enemy {
     this.nextMoveText.setVisible(show)
   }
 
+  toggleHealthText(show: boolean) {
+    this.healthBar.toggleHealthText(show)
+  }
+
   damage(amount: number) {
     if (!this.isInvulnerable) {
       super.damage(amount)
     }
-  }
-
-  setVisible(isVisible: boolean) {
-    this.sprite.setVisible(isVisible)
-    this.healthBar.setVisible(isVisible)
   }
 }

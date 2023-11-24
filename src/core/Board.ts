@@ -334,6 +334,7 @@ export class Board {
      * When we spawn in new orbs, it's simply a matter of iterating through the queue and creating a new orb for each given element, which corresponds to the empty space
      */
 
+    let timeUntilLastOrbFalls = Number.MIN_SAFE_INTEGER
     const allEmptySlots: BoardPosition[][] = []
     for (let i = 0; i < this.orbs[0].length; i++) {
       const emptySlotQueue: BoardPosition[] = []
@@ -344,11 +345,33 @@ export class Board {
           const orb = this.orbs[j][i]!
           if (emptySlotQueue.length > 0) {
             const lowestEmptySlot = emptySlotQueue.shift()!
-            this.moveOrbToNewLocation(
+            const worldPosForRowCol = this.getCellAtRowCol(
               lowestEmptySlot.row,
-              lowestEmptySlot.col,
-              orb
+              lowestEmptySlot.col
             )
+            this.orbs[lowestEmptySlot.row][lowestEmptySlot.col] = orb
+            const fallSpeed = Constants.ORB_MOVE_SPEED
+            const distance = worldPosForRowCol!.centerY - orb.sprite.y
+            const fallDuration = distance / fallSpeed
+            timeUntilLastOrbFalls = Math.max(
+              fallDuration,
+              timeUntilLastOrbFalls
+            )
+            this.scene.tweens.add({
+              targets: [orb.sprite],
+              y: {
+                from: orb.sprite.y,
+                to: worldPosForRowCol!.centerY,
+              },
+              duration: fallDuration,
+              onComplete: () => {
+                this.moveOrbToNewLocation(
+                  lowestEmptySlot.row,
+                  lowestEmptySlot.col,
+                  orb
+                )
+              },
+            })
             emptySlotQueue.push({ row: j, col: i })
           }
         }
@@ -397,7 +420,7 @@ export class Board {
           },
         })
         this.orbs[slot.row][slot.col] = newOrb
-        const fallSpeed = 0.25
+        const fallSpeed = Constants.ORB_MOVE_SPEED
         const distance = worldPosForRowCol!.centerY - yPos
         newOrb.sprite.setVisible(false)
         const onCompleteCallback = () => {

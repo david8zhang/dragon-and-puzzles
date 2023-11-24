@@ -13,11 +13,11 @@ export enum TutorialPhase {
 
 export class Tutorial extends Phaser.Scene {
   private static TUTORIAL_ENEMY_CONFIG = {
-    maxHealth: 50,
-    spriteName: 'tutorial-debug',
+    maxHealth: 25,
+    spriteName: 'green-dragon',
     element: Elements.GRASS,
-    baseDamage: 10,
-    maxTurnsUntilAttack: 4,
+    baseDamage: 3,
+    maxTurnsUntilAttack: 5,
   }
   private static ALL_TEXT_LINES = [
     [
@@ -28,8 +28,7 @@ export class Tutorial extends Phaser.Scene {
     [
       'Notice that scales have colors. Some of these correspond to the elements (red: fire, blue: water, green: grass, purple: darkness, and yellow: light).',
       'Whereas elemental scales deal damage, heal scales (pink) recover HP',
-      'The gray scales are not associated with any element, but do contribute to combo multipliers',
-      'As you defeat enemies, you will unlock new scales which will replace the gray scales',
+      'Some scales are deactivated (grayed out) and will be unlocked as you defeat enemies',
       'Every enemy you encounter will be color coded to the element associated with it, which determine its weaknesses and resistances',
       'As you can probably guess, water, fire and grass behave like the classic rock-paper-scissors trio. (Water > fire, fire > grass, grass > water)',
       'Light, on the other hand, is strong against dark and vice versa. Dark resists all elements except light',
@@ -232,6 +231,7 @@ export class Tutorial extends Phaser.Scene {
       case TutorialPhase.ENEMY_ATTACK: {
         this.enemy.toggleInvulnerable(false)
         this.enemy.toggleNextMoveText(true)
+        this.enemy.toggleHealthText(true)
         this.player.addTurnEndListener(() => {
           this.time.delayedCall(500, () => {
             this.enemy.takeTurn()
@@ -307,7 +307,6 @@ export class Tutorial extends Phaser.Scene {
       .image(0, 0, 'background')
       .setDisplaySize(Constants.WINDOW_WIDTH, 375)
       .setOrigin(0, 0)
-      .setDepth(this.player.sprite.depth - 1)
     this.setupTutorialText()
     this.createTransitionOverlay()
   }
