@@ -181,7 +181,18 @@ export class Orb {
   moveToNewLocation(row: number, col: number) {
     this.currCell = { row, col }
     const cell = this.board.getCellAtRowCol(row, col)
-    this.sprite.setPosition(cell!.centerX, cell!.centerY)
+    this.scene.tweens.add({
+      targets: [this.sprite],
+      x: {
+        from: this.sprite.x,
+        to: cell!.centerX,
+      },
+      y: {
+        from: this.sprite.y,
+        to: cell!.centerY,
+      },
+      duration: 150,
+    })
   }
 
   destroy() {

@@ -74,7 +74,9 @@ export class Player {
     this.attack(0, dmgPerElement)
     // Handle heals
     if (dmgPerElement[Elements.HEALTH] != undefined) {
-      const healAmount = dmgPerElement[Elements.HEALTH]
+      const healAmount = Math.round(
+        dmgPerElement[Elements.HEALTH] * Constants.HEAL_MULTIPLIER
+      )
       this.health = Math.min(this.maxHealth, this.health + healAmount)
       this.healthBar.draw()
       this.game.sound.play('heal', { volume: 0.1 })

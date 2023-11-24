@@ -21,6 +21,10 @@ export class Constants {
     top: 600,
   }
 
+  public static HEAL_MULTIPLIER = 2
+
+  public static ORB_MOVE_SPEED = 0.35
+
   public static ELEMENT_TO_COLOR = {
     [Elements.FIRE]: 'ff977d', // #ff977d
     [Elements.WATER]: '7d8eff', // #7d8eff

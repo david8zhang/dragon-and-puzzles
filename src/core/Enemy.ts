@@ -177,19 +177,6 @@ export class Enemy {
         this.onDiedListener.forEach((fn) => fn())
       })
     })
-    // this.game.tweens.add({
-    //   targets: this.sprite,
-    //   alpha: {
-    //     from: 1,
-    //     to: 0,
-    //   },
-    //   duration: 1000,
-    //   onComplete: () => {
-    //     this.game.time.delayedCall(500, () => {
-    //       this.onDiedListener.forEach((fn) => fn())
-    //     })
-    //   },
-    // })
   }
 
   async takeTurn(): Promise<void> {
@@ -226,7 +213,7 @@ export class Enemy {
       onComplete: () => {
         attackOrb.destroy()
         this.attackListener.forEach((fn) => fn(this.baseDamage)) // deal 10 damage
-        this.turnsUntilAttack = Phaser.Math.Between(1, this.maxTurnsUntilAttack)
+        this.turnsUntilAttack = this.maxTurnsUntilAttack
         this.game.sound.play('basic-attack')
         UINumber.createNumber(
           `${this.baseDamage}`,
