@@ -91,6 +91,6 @@ export class Preload extends Phaser.Scene {
 
   create() {
     // this.scene.start('start')
-    this.scene.start('game')
+    this.scene.start('tutorial')
   }
 }

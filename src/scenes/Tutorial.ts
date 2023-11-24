@@ -14,7 +14,7 @@ export enum TutorialPhase {
 export class Tutorial extends Phaser.Scene {
   private static TUTORIAL_ENEMY_CONFIG = {
     maxHealth: 50,
-    spriteName: 'tutorial-debug',
+    spriteName: 'green-dragon',
     element: Elements.GRASS,
     baseDamage: 10,
     maxTurnsUntilAttack: 4,
@@ -307,7 +307,6 @@ export class Tutorial extends Phaser.Scene {
       .image(0, 0, 'background')
       .setDisplaySize(Constants.WINDOW_WIDTH, 375)
       .setOrigin(0, 0)
-      .setDepth(this.player.sprite.depth - 1)
     this.setupTutorialText()
     this.createTransitionOverlay()
   }

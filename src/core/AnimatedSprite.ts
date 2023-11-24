@@ -73,7 +73,6 @@ export class AnimatedSprite {
   play(onComplete: () => void) {
     this.sprites.forEach((sprite) => sprite.play(AnimatedSprite.ANIMATION_KEY))
     this.sprites[0].on('animationcomplete', () => {
-      console.log('hi')
       onComplete()
       this.sprites[0].removeAllListeners('animationcomplete')
     })

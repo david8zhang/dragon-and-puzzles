@@ -23,9 +23,4 @@ export class TutorialEnemy extends Enemy {
       super.damage(amount)
     }
   }
-
-  setVisible(isVisible: boolean) {
-    this.sprite.setVisible(isVisible)
-    this.healthBar.setVisible(isVisible)
-  }
 }
