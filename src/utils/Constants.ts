@@ -32,6 +32,15 @@ export class Constants {
     [Elements.ALL]: 'ffffff',
   }
 
+  public static ALL_ELEMENTS = [
+    Elements.FIRE,
+    Elements.WATER,
+    Elements.GRASS,
+    Elements.LIGHT,
+    Elements.DARK,
+    Elements.HEALTH,
+  ]
+
   public static WEAKNESS_MAP = {
     [Elements.FIRE]: [Elements.WATER],
     [Elements.WATER]: [Elements.GRASS],

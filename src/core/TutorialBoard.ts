@@ -6,50 +6,50 @@ import { Orb } from './Orb'
 export class TutorialBoard extends Board {
   private static BOARD_CONFIG = [
     [
-      Elements.NONE,
+      Elements.WATER,
       Elements.HEALTH,
       Elements.FIRE,
-      Elements.NONE,
-      Elements.HEALTH,
-      Elements.FIRE,
-    ],
-    [
-      Elements.HEALTH,
-      Elements.NONE,
-      Elements.NONE,
-      Elements.FIRE,
-      Elements.FIRE,
-      Elements.NONE,
-    ],
-    [
-      Elements.NONE,
-      Elements.HEALTH,
-      Elements.FIRE,
-      Elements.NONE,
-      Elements.HEALTH,
-      Elements.HEALTH,
-    ],
-    [
-      Elements.FIRE,
-      Elements.NONE,
-      Elements.HEALTH,
-      Elements.NONE,
+      Elements.LIGHT,
       Elements.HEALTH,
       Elements.FIRE,
     ],
     [
-      Elements.NONE,
+      Elements.HEALTH,
+      Elements.DARK,
+      Elements.WATER,
+      Elements.FIRE,
+      Elements.FIRE,
+      Elements.GRASS,
+    ],
+    [
+      Elements.GRASS,
+      Elements.HEALTH,
+      Elements.FIRE,
+      Elements.LIGHT,
+      Elements.HEALTH,
+      Elements.HEALTH,
+    ],
+    [
+      Elements.FIRE,
+      Elements.DARK,
+      Elements.HEALTH,
+      Elements.WATER,
+      Elements.HEALTH,
+      Elements.FIRE,
+    ],
+    [
+      Elements.GRASS,
       Elements.FIRE,
       Elements.HEALTH,
       Elements.FIRE,
-      Elements.NONE,
+      Elements.WATER,
       Elements.HEALTH,
     ],
   ]
 
   private orbsToSpawn = [
     Elements.FIRE,
-    Elements.NONE,
+    Elements.LIGHT,
     Elements.FIRE,
     Elements.HEALTH,
     Elements.FIRE,
@@ -72,6 +72,7 @@ export class TutorialBoard extends Board {
   setupBoard() {
     let xPos = Board.GRID_TOP_LEFT_X
     let yPos = Board.GRID_TOP_LEFT_Y
+    const elementsForLevel = this.getElementsForLevel()
     for (let i = 0; i < TutorialBoard.BOARD_CONFIG.length; i++) {
       const orbRow: Orb[] = []
       const gridRow: Phaser.Geom.Rectangle[] = []
@@ -106,6 +107,9 @@ export class TutorialBoard extends Board {
           },
           radius: Board.CELL_SIZE / 2 - 10,
           element: TutorialBoard.BOARD_CONFIG[i][j],
+          isDeactivated: !elementsForLevel.includes(
+            TutorialBoard.BOARD_CONFIG[i][j]
+          ),
           board: this,
         })
         orbRow[j] = orb
@@ -188,7 +192,9 @@ export class TutorialBoard extends Board {
       column.forEach((slot) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
         orbToSpawnIndex = (orbToSpawnIndex + 1) % this.orbsToSpawn.length
-
+        const randomElement = Phaser.Utils.Array.GetRandom(
+          Constants.ALL_ELEMENTS
+        )
         const newOrb = new Orb(this.scene, {
           position: {
             x: worldPosForRowCol!.centerX,
@@ -196,9 +202,8 @@ export class TutorialBoard extends Board {
           },
           id: Phaser.Utils.String.UUID(),
           radius: Board.CELL_SIZE / 2 - 10,
-          element: this.spawnRandomOrbs
-            ? Phaser.Utils.Array.GetRandom(elementsForLevel)
-            : this.orbsToSpawn[orbToSpawnIndex],
+          element: randomElement,
+          isDeactivated: !elementsForLevel.includes(randomElement),
           board: this,
           currCell: {
             row: slot.row,
