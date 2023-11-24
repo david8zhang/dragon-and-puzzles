@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { BattleUI } from '~/core/BattleUI'
 import { Board } from '~/core/Board'
 import { Button } from '~/core/Button'
 import { ENEMIES, Enemy } from '~/core/Enemy'
@@ -8,7 +9,7 @@ import { Constants } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
   public board!: Board
-  public level: number = 0
+  public level: number = 4
   public player!: Player
   public enemy!: Enemy
 
@@ -36,6 +37,7 @@ export class Game extends Phaser.Scene {
 
   create() {
     this.initPlugins()
+    new BattleUI(this)
     if (this.level < 4) {
       this.sound.stopAll()
 
@@ -45,7 +47,7 @@ export class Game extends Phaser.Scene {
         this.sound.play('level-2', { loop: true, volume: 0.25 })
       }
     }
-    this.cameras.main.setBackgroundColor(0x369f5c)
+    this.cameras.main.setBackgroundColor(0x000000)
     this.board = new Board(this)
 
     this.player = new Player(this, this.board)
@@ -64,13 +66,6 @@ export class Game extends Phaser.Scene {
 
     this.enemy.addAttackListener((dmgAmount) => this.player.damage(dmgAmount))
     this.enemy.addTurnEndListener(() => this.board.setDisabled(false))
-
-    // Add BG image
-    this.add
-      .image(0, 0, 'background')
-      .setDisplaySize(Constants.WINDOW_WIDTH, 375)
-      .setOrigin(0, 0)
-      .setDepth(Constants.SORT_ORDER.background)
 
     this.enemy.addOnDiedListener(() => {
       this.transitionToNextEnemy()

@@ -68,6 +68,11 @@ export class Preload extends Phaser.Scene {
     this.load.image('orb-dark', 'orbs/orb-dark.png')
     this.load.image('orb-health', 'orbs/orb-health.png')
 
+    this.load.image('orb-water-disabled', 'orbs/orb-water-disabled.png')
+    this.load.image('orb-grass-disabled', 'orbs/orb-grass-disabled.png')
+    this.load.image('orb-light-disabled', 'orbs/orb-light-disabled.png')
+    this.load.image('orb-dark-disabled', 'orbs/orb-dark-disabled.png')
+
     // BGM
     this.load.audio('start', 'audio/bgm/start.mp3')
     this.load.audio('tutorial', 'audio/bgm/tutorial.mp3')
@@ -90,6 +95,6 @@ export class Preload extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start('game')
+    this.scene.start('tutorial')
   }
 }

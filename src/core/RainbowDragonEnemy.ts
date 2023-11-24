@@ -36,6 +36,7 @@ export class RainbowDragonEnemy extends Enemy {
     this.addTurnEndListener(() => {
       this.morphToRandomElement()
     })
+    this.setupRainbowScales()
   }
 
   protected override setupSprite(config: EnemyConfig): AnimatedSprite {

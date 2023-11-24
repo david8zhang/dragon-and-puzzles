@@ -48,8 +48,8 @@ export const ENEMIES: EnemyConfig[] = [
 
 export class Enemy {
   public static readonly POSITION: { x: number; y: number } = {
-    x: 465,
-    y: 125,
+    x: Constants.WINDOW_WIDTH - 150,
+    y: 200,
   }
 
   public readonly maxHealth: number
@@ -84,7 +84,7 @@ export class Enemy {
     this.nextMoveText = this.game.add
       .text(
         Enemy.POSITION.x,
-        Enemy.POSITION.y - 110,
+        Enemy.POSITION.y + 100,
         `Attacks in ${this.turnsUntilAttack} turn${
           this.turnsUntilAttack == 1 ? '' : 's'
         }`
@@ -154,8 +154,8 @@ export class Enemy {
       {
         // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
         position: {
-          x: Enemy.POSITION.x - 390,
-          y: Enemy.POSITION.y - 50,
+          x: Enemy.POSITION.x - 100,
+          y: Enemy.POSITION.y - 150,
         },
         length: 200,
         width: 15,

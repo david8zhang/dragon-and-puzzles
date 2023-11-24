@@ -10,8 +10,8 @@ import { AnimatedSprite } from './AnimatedSprite'
 
 export class Player {
   public static readonly POSITION: { x: number; y: number } = {
-    x: 175,
-    y: 275,
+    x: 150,
+    y: 200,
   }
   private static readonly MAX_HEALTH: number = 100
 
@@ -58,10 +58,9 @@ export class Player {
     this.healthBar = new Healthbar(
       this.game,
       {
-        // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
         position: {
-          x: 300,
-          y: Player.POSITION.y + 50,
+          x: Player.POSITION.x - 125,
+          y: Player.POSITION.y - 150,
         },
         length: 200,
         width: 15,

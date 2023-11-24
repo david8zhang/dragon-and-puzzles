@@ -41,8 +41,11 @@ export class Orb {
     this.board = config.board
     this.element = config.element
 
+    const spriteName = config.isDeactivated
+      ? `orb-${config.element}-disabled`
+      : `orb-${config.element}`
     this.sprite = this.scene.add
-      .sprite(config.position.x, config.position.y, `orb-${config.element}`)
+      .sprite(config.position.x, config.position.y, spriteName)
       .setOrigin(0.5, 0.5)
       .setScale(2)
       .setDepth(Constants.SORT_ORDER.ui)
@@ -59,10 +62,6 @@ export class Orb {
 
     if (config.isDeactivated) {
       this.isDeactivated = config.isDeactivated
-      const grayscalePlugin = this.scene.plugins.get(
-        'rexGrayscalePipeline'
-      ) as any
-      grayscalePlugin.add(this.sprite)
     }
 
     this.timerBar = this.scene.add
