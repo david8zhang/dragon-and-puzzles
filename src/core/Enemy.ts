@@ -24,14 +24,14 @@ export const ENEMIES: EnemyConfig[] = [
     maxTurnsUntilAttack: 4,
   },
   {
-    maxHealth: 125,
+    maxHealth: 100,
     spriteName: 'water-dragon',
     element: Elements.WATER,
     baseDamage: 15,
     maxTurnsUntilAttack: 3,
   },
   {
-    maxHealth: 150,
+    maxHealth: 125,
     spriteName: 'light-dragon',
     element: Elements.LIGHT,
     baseDamage: 20,

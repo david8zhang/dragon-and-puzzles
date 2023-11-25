@@ -47,16 +47,6 @@ export class TutorialBoard extends Board {
     ],
   ]
 
-  private orbsToSpawn = [
-    Elements.FIRE,
-    Elements.LIGHT,
-    Elements.FIRE,
-    Elements.HEALTH,
-    Elements.FIRE,
-    Elements.HEALTH,
-    Elements.HEALTH,
-  ]
-
   private spawnRandomOrbs: boolean = false
   private pointerSprite: Phaser.GameObjects.Sprite
 
@@ -184,17 +174,22 @@ export class TutorialBoard extends Board {
 
   generateOrbsToFillEmptySlots(allEmptySlots: BoardPosition[][]) {
     let timeUntilLastOrbFalls = 0
-    let orbToSpawnIndex = 0
 
     const elementsForLevel = this.getElementsForLevel()
+    const lockedElements = Constants.ALL_ELEMENTS.filter(
+      (element) => !elementsForLevel.includes(element)
+    )
+
     allEmptySlots.forEach((column) => {
       let yPos = Board.GRID_TOP_LEFT_Y - 25
       column.forEach((slot) => {
         const worldPosForRowCol = this.getCellAtRowCol(slot.row, slot.col)
-        orbToSpawnIndex = (orbToSpawnIndex + 1) % this.orbsToSpawn.length
-        const randomElement = Phaser.Utils.Array.GetRandom(
-          Constants.ALL_ELEMENTS
+        let randomElement = Phaser.Utils.Array.GetRandom(
+          this.getElementsForLevel()
         )
+        if (randomElement === Elements.NONE) {
+          randomElement = Phaser.Utils.Array.GetRandom(lockedElements)
+        }
         const newOrb = new Orb(this.scene, {
           position: {
             x: worldPosForRowCol!.centerX,
