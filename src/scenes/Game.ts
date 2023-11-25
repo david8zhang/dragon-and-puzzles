@@ -12,12 +12,15 @@ export class Game extends Phaser.Scene {
   public level: number = 0
   public player!: Player
   public enemy!: Enemy
+  public playerSideMask: Phaser.Display.Masks.BitmapMask
+  public enemySideMask: Phaser.Display.Masks.BitmapMask
 
   private transitionOverlayRect!: Phaser.GameObjects.Rectangle
   private transitionTitleText!: Phaser.GameObjects.Text
   private transitionOrbUnlocked!: Phaser.GameObjects.Sprite
   private transitionSubtitleText!: Phaser.GameObjects.Text
   private continueButton!: Button
+
   public cameraGrayscaleFilter: any
   public grayscalePlugin: any
 
@@ -37,7 +40,11 @@ export class Game extends Phaser.Scene {
 
   create() {
     this.initPlugins()
-    new BattleUI(this)
+
+    const battleUI = new BattleUI(this)
+    this.playerSideMask = battleUI.playerSideMask
+    this.enemySideMask = battleUI.enemySideMask
+
     if (this.level < 4) {
       this.sound.stopAll()
 

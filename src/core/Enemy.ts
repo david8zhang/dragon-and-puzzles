@@ -164,9 +164,29 @@ export class Enemy {
     )
   }
 
-  damage(amount: number): void {
-    this.health = Math.max(0, this.health - amount)
+  damage(amount: number, element: Elements): void {
+    const hasElementAdv =
+      Constants.WEAKNESS_MAP[this.game.enemy.element].includes(element)
+    const hasElementDisadv =
+      Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
+    if (hasElementAdv) {
+      this.game.sound.play('effective-attack')
+      this.game.cameras.main.shake(250, 0.005)
+    } else if (hasElementDisadv) {
+      this.game.sound.play('weak-attack')
+    } else {
+      this.game.sound.play('basic-attack')
+    }
 
+    UINumber.createNumber(
+      `${amount}`,
+      this.game,
+      Enemy.POSITION.x,
+      Enemy.POSITION.y,
+      `#${Constants.ELEMENT_TO_COLOR[element]}`,
+      hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
+    )
+    this.health = Math.max(0, this.health - amount)
     this.healthBar.draw()
   }
 

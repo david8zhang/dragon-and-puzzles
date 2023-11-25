@@ -3,10 +3,10 @@ import { Constants } from '~/utils/Constants'
 
 export class BattleUI {
   private game: Game
-
   private divider: Phaser.GameObjects.Rectangle
-  private playerSideMask: Phaser.Display.Masks.BitmapMask
-  private enemySideMask: Phaser.Display.Masks.BitmapMask
+
+  public playerSideMask: Phaser.Display.Masks.BitmapMask
+  public enemySideMask: Phaser.Display.Masks.BitmapMask
 
   constructor(game: Game) {
     this.game = game

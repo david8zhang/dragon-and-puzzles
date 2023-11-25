@@ -73,6 +73,19 @@ export class Preload extends Phaser.Scene {
     this.load.image('orb-light-disabled', 'orbs/orb-light-disabled.png')
     this.load.image('orb-dark-disabled', 'orbs/orb-dark-disabled.png')
 
+    this.load.spritesheet('fire-attack-charge', 'vfx/fire-attack-charge.png', {
+      frameWidth: 128,
+      frameHeight: 64,
+    })
+    this.load.spritesheet('fire-attack', 'vfx/fire-attack.png', {
+      frameWidth: 128,
+      frameHeight: 64,
+    })
+    this.load.spritesheet('fire-attack-impact', 'vfx/fire-attack-impact.png', {
+      frameWidth: 196,
+      frameHeight: 64,
+    })
+
     // BGM
     this.load.audio('start', 'audio/bgm/start.mp3')
     this.load.audio('tutorial', 'audio/bgm/tutorial.mp3')
@@ -95,6 +108,6 @@ export class Preload extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start('tutorial')
+    this.scene.start('game')
   }
 }
