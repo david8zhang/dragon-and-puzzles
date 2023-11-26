@@ -12,8 +12,8 @@ export class Game extends Phaser.Scene {
   public level: number = 0
   public player!: Player
   public enemy!: Enemy
-  public playerSideMask: Phaser.Display.Masks.BitmapMask
-  public enemySideMask: Phaser.Display.Masks.BitmapMask
+  public playerSideMask!: Phaser.Display.Masks.BitmapMask
+  public enemySideMask!: Phaser.Display.Masks.BitmapMask
 
   private transitionOverlayRect!: Phaser.GameObjects.Rectangle
   private transitionTitleText!: Phaser.GameObjects.Text
