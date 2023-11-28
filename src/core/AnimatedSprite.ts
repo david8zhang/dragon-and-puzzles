@@ -11,8 +11,8 @@ export interface AnimatedSpriteConfig {
     y: number
   }
   // Frame the animation start / stops at
-  startFrame: number
-  endFrame: number
+  startFrame?: number
+  endFrame?: number
   // Set custom duration for each frame
   frameDurations?: number[]
   frameRate?: number
@@ -42,21 +42,28 @@ export class AnimatedSprite {
     // Setup animations
     config.spriteNames.forEach((spriteName, i) => {
       const { frameRate, frameDurations, startFrame, endFrame } = config
-      const frames = this.game.anims.generateFrameNumbers(spriteName, {
-        start: startFrame,
-        end: endFrame,
-      })
+      const frames = this.game.anims.generateFrameNumbers(
+        spriteName,
+        startFrame != null && endFrame != null
+          ? {
+              start: startFrame,
+              end: endFrame,
+            }
+          : {}
+      )
       // Makes debugging easier
       if (
         frameDurations != null &&
+        endFrame != null &&
+        startFrame != null &&
         frameDurations.length != endFrame - startFrame + 1
       )
         console.warn('Must define a duration (in ms) for each frame!')
       if (frameDurations == null && frameRate == null)
         console.warn('Must define frame rate or frame durations!')
+
       if (frameDurations != null)
         frameDurations.forEach((duration, i) => (frames[i].duration = duration))
-
       this.sprites[i].anims.create({
         key: AnimatedSprite.ANIMATION_KEY,
         frames: frames,
@@ -125,6 +132,10 @@ export class AnimatedSprite {
 
   setMask(mask: Phaser.Display.Masks.BitmapMask) {
     this.sprites.forEach((sprite) => sprite.setMask(mask))
+  }
+
+  setFlipX(flipX: boolean) {
+    this.sprites.forEach((sprite) => sprite.setFlipX(flipX))
   }
 
   addFrameListener(fn: (frame: number) => void) {

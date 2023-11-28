@@ -10,6 +10,14 @@ export class RainbowDragonEnemy extends Enemy {
     element: Elements.ALL,
     baseDamage: 25,
     maxTurnsUntilAttack: 2,
+    chargeAnimationOffset: {
+      x: -20,
+      y: 20,
+    },
+    attackAnimationOffset: {
+      x: -20,
+      y: 20,
+    },
   }
   private static readonly SCALES_SPRITE_NAME_1: string =
     'rainbow-dragon-scales-1'

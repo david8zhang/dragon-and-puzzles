@@ -7,6 +7,7 @@ import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
 import { Enemy } from './Enemy'
 import { AnimatedSprite } from './AnimatedSprite'
+import { BattleUI } from './BattleUI'
 
 export class Player {
   public static readonly POSITION: { x: number; y: number } = {
@@ -66,20 +67,28 @@ export class Player {
   }
 
   async handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
-    await this.tweenToPosition(Player.POSITION.x - 50, Player.POSITION.y)
-
     const availableElements = this.game.board.getElementsForLevel() as string[]
     const elements = Object.keys(dmgPerElement).filter(
       (element) =>
         element !== Elements.HEALTH && availableElements.includes(element)
     )
 
+    if (elements.length > 0) {
+      this.game.battleUI.tweenPlayerParallaxBackground(-15)
+      await this.tweenToPosition(Player.POSITION.x - 50, Player.POSITION.y)
+    }
+
     // Play attack animation for each element
     for (const element of elements) {
-      await this.playAttackAnimation()
+      await this.playAttackAnimation(element as Elements)
 
       this.game.time.delayedCall(500, () => {
-        this.playImpactAnimation()
+        this.game.attackEffectsManager.playImpactAnimation(
+          Enemy.POSITION.x,
+          Enemy.POSITION.y - 10,
+          element as Elements,
+          true // isFromPlayer
+        )
         this.game.enemy.damage(dmgPerElement[element], element as Elements)
       })
     }
@@ -103,7 +112,11 @@ export class Player {
     }
 
     this.game.time.delayedCall(500, () => {
-      this.tweenToPosition(Player.POSITION.x, Player.POSITION.y)
+      // if we attacked, move the player back
+      if (elements.length > 0) {
+        this.tweenToPosition(Player.POSITION.x, Player.POSITION.y)
+        this.game.battleUI.tweenPlayerParallaxBackground(15)
+      }
       this.turnEndListener.forEach((fn) => fn())
       this.sprite.reset()
     })
@@ -130,7 +143,7 @@ export class Player {
     })
   }
 
-  private async playAttackAnimation(): Promise<void> {
+  private async playAttackAnimation(element: Elements): Promise<void> {
     return new Promise((resolve, reject) => {
       this.sprite.play(
         () => resolve(), // onComplete
@@ -138,34 +151,21 @@ export class Player {
           switch (frame) {
             // Frame 1 = charge animation
             case 1:
-              const chargeFX = new AnimatedSprite(this.game, {
-                spriteNames: ['fire-attack-charge'],
-                position: {
-                  x: Player.POSITION.x - 20,
-                  y: Player.POSITION.y - 30,
-                },
-                startFrame: 0,
-                endFrame: 3,
-                frameRate: 12,
-                destroyOnComplete: true,
-              })
-              chargeFX.play()
+              this.game.attackEffectsManager.playChargeFX(
+                Player.POSITION.x - 20,
+                Player.POSITION.y - 30,
+                element,
+                true // isFromPlayer
+              )
               break
             // Frame 2 = impact animation
             case 2:
-              const attackFX = new AnimatedSprite(this.game, {
-                spriteNames: ['fire-attack'],
-                position: {
-                  x: Player.POSITION.x + 70,
-                  y: Player.POSITION.y - 10,
-                },
-                startFrame: 0,
-                endFrame: 5,
-                frameRate: 12,
-                destroyOnComplete: true,
-              })
-              attackFX.setMask(this.game.playerSideMask)
-              attackFX.play()
+              this.game.attackEffectsManager.playAttackFX(
+                Player.POSITION.x + 70,
+                Player.POSITION.y - 10,
+                element,
+                true // isFromPlayer
+              )
               break
           }
         }
@@ -173,29 +173,23 @@ export class Player {
     })
   }
 
-  playImpactAnimation() {
-    const impactFX = new AnimatedSprite(this.game, {
-      spriteNames: ['fire-attack-impact'],
-      position: {
-        x: Enemy.POSITION.x,
-        y: Enemy.POSITION.y - 10,
-      },
-      startFrame: 0,
-      endFrame: 4,
-      frameRate: 12,
-      destroyOnComplete: true,
-    })
-    impactFX.setMask(this.game.enemySideMask)
-    impactFX.play()
-  }
-
   damage(amount: number) {
     this.health -= amount
+    UINumber.createNumber(
+      `${amount}`,
+      this.game,
+      Player.POSITION.x,
+      Player.POSITION.y,
+      'white',
+      '25px'
+    )
+    this.game.sound.play('basic-attack')
+    this.healthBar.draw()
+
     if (this.health <= 0) {
       this.health = 0
       this.game.scene.start('gameover')
     }
-    this.healthBar.draw()
   }
 
   calculateComboDamageOrHealAmt(combos: string[][]): {
