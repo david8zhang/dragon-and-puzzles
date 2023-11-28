@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { AttackEffectsManager } from '~/core/AttackEffectsManager'
 import { BattleUI } from '~/core/BattleUI'
 import { Board } from '~/core/Board'
 import { Button } from '~/core/Button'
@@ -14,6 +15,7 @@ export class Game extends Phaser.Scene {
   public enemy!: Enemy
   public playerSideMask!: Phaser.Display.Masks.BitmapMask
   public enemySideMask!: Phaser.Display.Masks.BitmapMask
+  public attackEffectsManager!: AttackEffectsManager
 
   private transitionOverlayRect!: Phaser.GameObjects.Rectangle
   private transitionTitleText!: Phaser.GameObjects.Text
@@ -23,6 +25,7 @@ export class Game extends Phaser.Scene {
 
   public cameraGrayscaleFilter: any
   public grayscalePlugin: any
+  public battleUI!: BattleUI
 
   constructor() {
     super('game')
@@ -41,9 +44,10 @@ export class Game extends Phaser.Scene {
   create() {
     this.initPlugins()
 
-    const battleUI = new BattleUI(this)
-    this.playerSideMask = battleUI.playerSideMask
-    this.enemySideMask = battleUI.enemySideMask
+    this.attackEffectsManager = new AttackEffectsManager(this)
+    this.battleUI = new BattleUI(this)
+    this.playerSideMask = this.battleUI.playerSideMask
+    this.enemySideMask = this.battleUI.enemySideMask
 
     if (this.level < 4) {
       this.sound.stopAll()
