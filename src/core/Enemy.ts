@@ -31,7 +31,7 @@ export const ENEMIES: EnemyConfig[] = [
     baseDamage: 10,
     maxTurnsUntilAttack: 4,
     chargeAnimationOffset: {
-      x: -40,
+      x: -20,
       y: -55,
     },
     attackAnimationOffset: {
@@ -47,11 +47,11 @@ export const ENEMIES: EnemyConfig[] = [
     maxTurnsUntilAttack: 3,
     chargeAnimationOffset: {
       x: -20,
-      y: 20,
+      y: -20,
     },
     attackAnimationOffset: {
-      x: -20,
-      y: 20,
+      x: -120,
+      y: -15,
     },
   },
   {
@@ -65,8 +65,8 @@ export const ENEMIES: EnemyConfig[] = [
       y: 20,
     },
     attackAnimationOffset: {
-      x: -20,
-      y: 20,
+      x: -120,
+      y: 50,
     },
   },
   {
@@ -76,12 +76,12 @@ export const ENEMIES: EnemyConfig[] = [
     baseDamage: 20,
     maxTurnsUntilAttack: 3,
     chargeAnimationOffset: {
-      x: -20,
-      y: 20,
+      x: -30,
+      y: 30,
     },
     attackAnimationOffset: {
-      x: -20,
-      y: 20,
+      x: -90,
+      y: 30,
     },
   },
 ]
@@ -107,11 +107,11 @@ export class Enemy {
   protected turnEndListener: Array<() => void> = []
   public onDiedListener: Array<() => void> = []
 
-  private chargeAnimationOffset: {
+  protected chargeAnimationOffset: {
     x: number
     y: number
   }
-  private attackAnimationOffset: {
+  protected attackAnimationOffset: {
     x: number
     y: number
   }
@@ -130,13 +130,13 @@ export class Enemy {
     this.attackAnimationOffset = config.attackAnimationOffset
     this.sprite = this.setupSprite(config)
 
-    // this.game.input.on('pointerdown', async () => {
-    //   await this.tweenToPosition(Enemy.POSITION.x + 50, Enemy.POSITION.y)
-    //   await this.playAttackAnimation(this.element)
-    //   this.game.time.delayedCall(500, () => {
-    //     this.tweenToPosition(Enemy.POSITION.x, Enemy.POSITION.y)
-    //   })
-    // })
+    this.game.input.on('pointerdown', async () => {
+      await this.tweenToPosition(Enemy.POSITION.x + 50, Enemy.POSITION.y)
+      await this.playAttackAnimation(this.element)
+      this.game.time.delayedCall(500, () => {
+        this.tweenToPosition(Enemy.POSITION.x, Enemy.POSITION.y)
+      })
+    })
 
     // Set up next move text
     // TODO: Refactor this into its own fn?
@@ -268,7 +268,7 @@ export class Enemy {
     this.turnsUntilAttack--
     if (this.turnsUntilAttack === 0) {
       // attack animation
-      this.game.battleUI.tweenEnemyParallaxBackground(+15)
+      this.game.battleUI.tweenEnemyParallaxBackground(15)
       await this.tweenToPosition(Enemy.POSITION.x + 50, Enemy.POSITION.y)
       await this.playAttackAnimation(this.element)
 
@@ -285,7 +285,7 @@ export class Enemy {
 
       this.game.time.delayedCall(500, () => {
         this.tweenToPosition(Enemy.POSITION.x, Enemy.POSITION.y)
-        this.game.battleUI.tweenEnemyParallaxBackground(15)
+        this.game.battleUI.tweenEnemyParallaxBackground(-15)
         this.endTurn()
       })
     } else {
@@ -293,7 +293,7 @@ export class Enemy {
     }
   }
 
-  private async playAttackAnimation(element: Elements): Promise<void> {
+  protected async playAttackAnimation(element: Elements): Promise<void> {
     return new Promise((resolve, reject) => {
       this.sprite.play(
         () => resolve(), // onComplete
@@ -323,7 +323,7 @@ export class Enemy {
     })
   }
 
-  async tweenToPosition(x: number, y: number): Promise<void> {
+  protected async tweenToPosition(x: number, y: number): Promise<void> {
     const startX = this.sprite.sprites[0].x
     const startY = this.sprite.sprites[0].y
     return new Promise((resolve, reject) => {
