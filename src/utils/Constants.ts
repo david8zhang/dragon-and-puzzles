@@ -68,53 +68,53 @@ export class Constants {
   public static INTRO_CUTSCENE = [
     {
       text: 'Welcome to Puzzlen Dragonia! Here, every dragon is born with magical scales imbued with the essence of one of the five elements: Water, Grass, Fire, Light, and Darkness',
-      imageSrc: '',
+      imageSrc: 'intro-1',
     },
     {
       text: 'Almost all dragons are limited to a single elemental power. However, a select few are special...',
-      imageSrc: '',
+      imageSrc: 'intro-2',
     },
     {
       text: 'These dragons can take the scales of other dragons and command the full rainbow of the elements. It is said that only one of these chosen few can rule as King of the Dragons',
-      imageSrc: '',
+      imageSrc: 'intro-3',
     },
     {
       text: 'Will you, a humble fire dragon who only recently discovered their royal potential, ascend to the throne?',
-      imageSrc: '',
+      imageSrc: 'intro-4',
     },
   ]
 
   public static PRE_BOSS_CUTSCENE = [
     {
       text: 'With the glistening scales of all five elements, you stand before the golden throne of Puzzlen Dragonia',
-      imageSrc: '',
+      imageSrc: 'boss-1',
     },
     {
       text: '"So, you think you can challenge me? Let me show you what it really means to be King!"',
-      imageSrc: '',
+      imageSrc: 'boss-2',
     },
   ]
 
   public static END_CUTSCENE = [
     {
       text: 'And so you took the scales of all the elements and dethroned your predecessor to become the King of the Dragons.',
-      imageSrc: '',
+      imageSrc: 'victory',
     },
     {
       text: 'With the five elements at your disposal, you are all but unbeatable!',
-      imageSrc: '',
+      imageSrc: 'victory',
     },
     {
       text: "Of course, that's also what the previous King of the Dragons had believed for so long, until you defeated him.",
-      imageSrc: '',
+      imageSrc: 'victory',
     },
     {
       text: 'Will one rise to challenge and overthrow you, or will you reign supreme? Only time will tell...',
-      imageSrc: '',
+      imageSrc: 'victory',
     },
     {
       text: 'Thanks for playing!',
-      imageSrc: '',
+      imageSrc: 'victory',
     },
   ]
 }

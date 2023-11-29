@@ -13,7 +13,7 @@ export default class GameOver extends Phaser.Scene {
     this.add.image(
       Constants.WINDOW_WIDTH / 2,
       Constants.WINDOW_HEIGHT / 2,
-      'gameover'
+      'game-over'
     )
     const button = new Button({
       scene: this,
@@ -33,7 +33,8 @@ export default class GameOver extends Phaser.Scene {
       },
       x: Constants.WINDOW_WIDTH / 2,
       y: Constants.WINDOW_HEIGHT / 2,
-      fontSize: '20px',
+      fontSize: '10px',
+      fontFamily: 'dungeon-depths',
     })
     button.setVisible(false)
 
