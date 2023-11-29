@@ -80,6 +80,20 @@ export class BattleUI {
     return this.tweenParallaxBackground(false, amount)
   }
 
+  shakeBackground(isPlayer: boolean) {
+    const image = isPlayer ? this.playerBG : this.enemyBG
+    this.game.tweens.add({
+      targets: image,
+      x: {
+        from: image.x,
+        to: image.x + (isPlayer ? -3 : 3),
+      },
+      duration: 10,
+      yoyo: true,
+      repeat: 10,
+    })
+  }
+
   private async tweenParallaxBackground(
     isPlayer: boolean,
     amount: number

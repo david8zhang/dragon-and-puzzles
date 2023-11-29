@@ -238,6 +238,8 @@ export class Enemy {
       `#${Constants.ELEMENT_TO_COLOR[element]}`,
       hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
     )
+    this.sprite.flash()
+    this.game.battleUI.shakeBackground(false)
     this.health = Math.max(0, this.health - amount)
     this.healthBar.draw()
   }

@@ -153,6 +153,14 @@ export class AnimatedSprite {
     })
   }
 
+  flash() {
+    this.sprites[0].setTintFill(0xffffff)
+    this.game.time.delayedCall(100, () => {
+      // Don't tint all sprites because rainbow dragon has custom tint on scales / eyes / outline
+      this.sprites[0].clearTint()
+    })
+  }
+
   setMask(mask: Phaser.Display.Masks.BitmapMask) {
     this.sprites.forEach((sprite) => sprite.setMask(mask))
   }

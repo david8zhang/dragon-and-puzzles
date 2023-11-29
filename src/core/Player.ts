@@ -186,6 +186,8 @@ export class Player {
       'white',
       '25px'
     )
+    this.sprite.flash()
+    this.game.battleUI.shakeBackground(true)
     this.game.sound.play('basic-attack')
     this.healthBar.draw()
 
