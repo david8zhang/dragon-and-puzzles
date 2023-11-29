@@ -3,6 +3,7 @@ import { Enemy } from './Enemy'
 import { Constants } from '~/utils/Constants'
 
 export interface AnimatedSpriteConfig {
+  isCharacter?: boolean
   // Names of the preloaded sprites (supports multiple)
   spriteNames: string[]
   // Where to put the sprite
@@ -26,6 +27,7 @@ export class AnimatedSprite {
   private static readonly ANIMATION_KEY: string = 'animation'
 
   public sprites: Phaser.GameObjects.Sprite[] = []
+  public idleTween?: Phaser.Tweens.Tween
   private game: Game
   private destroyOnComplete: boolean = false
   private frameListeners: Array<(frame: number) => void> = []
@@ -81,6 +83,27 @@ export class AnimatedSprite {
         )
       })
     })
+
+    // Idle animation if sprite is a character
+    if (config.isCharacter) {
+      const originY = config.position.y
+      this.idleTween = this.game.tweens.addCounter({
+        from: -1,
+        to: 1,
+        duration: Math.random() * 2000 + 2000,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        onUpdate: (tween) => {
+          this.sprites.forEach((sprite) =>
+            sprite.setPosition(
+              config.position.x,
+              originY + tween.getValue() * 5
+            )
+          )
+        },
+      })
+    }
   }
 
   // Make sprite go boing

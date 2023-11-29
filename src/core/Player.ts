@@ -7,7 +7,6 @@ import { Constants, Elements } from '~/utils/Constants'
 import { UINumber } from './UINumber'
 import { Enemy } from './Enemy'
 import { AnimatedSprite } from './AnimatedSprite'
-import { BattleUI } from './BattleUI'
 
 export class Player {
   public static readonly POSITION: { x: number; y: number } = {
@@ -35,7 +34,8 @@ export class Player {
       position: Player.POSITION,
       startFrame: 1,
       endFrame: 2,
-      frameRate: 3,
+      frameRate: 2.5,
+      isCharacter: true,
     })
 
     this.setupHealthbar()
@@ -67,6 +67,7 @@ export class Player {
   }
 
   async handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
+    this.sprite.idleTween?.stop()
     const availableElements = this.game.board.getElementsForLevel() as string[]
     const elements = Object.keys(dmgPerElement).filter(
       (element) =>
@@ -114,7 +115,9 @@ export class Player {
     this.game.time.delayedCall(500, () => {
       // if we attacked, move the player back
       if (elements.length > 0) {
-        this.tweenToPosition(Player.POSITION.x, Player.POSITION.y)
+        this.tweenToPosition(Player.POSITION.x, Player.POSITION.y).then(() =>
+          this.sprite.idleTween?.restart()
+        )
         this.game.battleUI.tweenPlayerParallaxBackground(15)
       }
       this.turnEndListener.forEach((fn) => fn())
@@ -161,7 +164,7 @@ export class Player {
             // Frame 2 = impact animation
             case 2:
               this.game.attackEffectsManager.playAttackFX(
-                Player.POSITION.x + 70,
+                Player.POSITION.x + 120,
                 Player.POSITION.y - 10,
                 element,
                 true // isFromPlayer

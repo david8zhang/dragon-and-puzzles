@@ -130,14 +130,6 @@ export class Enemy {
     this.attackAnimationOffset = config.attackAnimationOffset
     this.sprite = this.setupSprite(config)
 
-    this.game.input.on('pointerdown', async () => {
-      await this.tweenToPosition(Enemy.POSITION.x + 50, Enemy.POSITION.y)
-      await this.playAttackAnimation(this.element)
-      this.game.time.delayedCall(500, () => {
-        this.tweenToPosition(Enemy.POSITION.x, Enemy.POSITION.y)
-      })
-    })
-
     // Set up next move text
     // TODO: Refactor this into its own fn?
     this.nextMoveText = this.game.add
@@ -175,7 +167,8 @@ export class Enemy {
       },
       startFrame: 1,
       endFrame: 2,
-      frameDurations: [250, 0],
+      frameRate: 2.5,
+      isCharacter: true,
     })
   }
 
@@ -264,6 +257,7 @@ export class Enemy {
       this.handleDeath()
       return
     }
+    this.sprite.idleTween?.stop()
 
     this.turnsUntilAttack--
     if (this.turnsUntilAttack === 0) {
@@ -284,7 +278,9 @@ export class Enemy {
       })
 
       this.game.time.delayedCall(500, () => {
-        this.tweenToPosition(Enemy.POSITION.x, Enemy.POSITION.y)
+        this.tweenToPosition(Enemy.POSITION.x, Enemy.POSITION.y).then(() =>
+          this.sprite.idleTween?.restart()
+        )
         this.game.battleUI.tweenEnemyParallaxBackground(-15)
         this.endTurn()
       })

@@ -62,6 +62,7 @@ export class RainbowDragonEnemy extends Enemy {
       startFrame: 1,
       endFrame: 5,
       frameDurations: [150, 150, 150, 500, 0],
+      isCharacter: true,
     })
   }
 
