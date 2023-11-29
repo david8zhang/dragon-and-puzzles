@@ -1,12 +1,13 @@
-import { Game } from '~/scenes/Game'
 import { AnimatedSprite } from './AnimatedSprite'
 import { Elements } from '~/utils/Constants'
+import { Scene } from 'phaser'
+import { Game } from '~/scenes/Game'
 
 export class AttackEffectsManager {
   private game: Game
 
-  constructor(game: Game) {
-    this.game = game
+  constructor(game: Scene) {
+    this.game = game as Game
   }
 
   playChargeFX(x: number, y: number, element: Elements, isFromPlayer: boolean) {
@@ -39,6 +40,8 @@ export class AttackEffectsManager {
     else attackFX.setMask(this.game.enemySideMask)
     attackFX.setFlipX(!isFromPlayer)
     attackFX.play()
+    this.game.sound.play(`${element}-attack`, { volume: 0.5 })
+    this.game.sound.play('burst', { volume: 2 })
   }
 
   playImpactAnimation(

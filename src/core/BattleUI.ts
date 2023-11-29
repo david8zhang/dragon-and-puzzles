@@ -1,10 +1,10 @@
 import 'babel-polyfill'
+import { Scene } from 'phaser'
 
-import { Game } from '~/scenes/Game'
 import { Constants } from '~/utils/Constants'
 
 export class BattleUI {
-  private game: Game
+  private game: Scene
   private divider: Phaser.GameObjects.Rectangle
 
   public playerBG: Phaser.GameObjects.Image
@@ -12,7 +12,7 @@ export class BattleUI {
   public playerSideMask: Phaser.Display.Masks.BitmapMask
   public enemySideMask: Phaser.Display.Masks.BitmapMask
 
-  constructor(game: Game) {
+  constructor(game: Scene) {
     this.game = game
     this.divider = this.game.add
       .rectangle(

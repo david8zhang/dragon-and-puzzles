@@ -4,6 +4,8 @@ import { Game } from './Game'
 import { TutorialPlayer } from '~/core/TutorialPlayer'
 import { TutorialEnemy } from '~/core/TutorialEnemy'
 import { Button } from '~/core/Button'
+import { BattleUI } from '~/core/BattleUI'
+import { AttackEffectsManager } from '~/core/AttackEffectsManager'
 
 export enum TutorialPhase {
   BASIC_ORB_MOVEMENT = 'BASIC_ORB_MOVEMENT',
@@ -59,6 +61,8 @@ export class Tutorial extends Phaser.Scene {
   private transitionTitleText!: Phaser.GameObjects.Text
   private transitionSubtitleText!: Phaser.GameObjects.Text
   private continueButton!: Button
+  public battleUI!: BattleUI
+  public attackEffectsManager!: AttackEffectsManager
 
   constructor() {
     super('tutorial')
@@ -286,6 +290,8 @@ export class Tutorial extends Phaser.Scene {
   }
 
   create() {
+    this.battleUI = new BattleUI(this)
+    this.attackEffectsManager = new AttackEffectsManager(this)
     this.sound.stopAll()
     this.sound.play('tutorial', { volume: 0.25, loop: true })
     this.board = new TutorialBoard(this)

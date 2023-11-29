@@ -74,13 +74,17 @@ export class AnimatedSprite {
 
       this.sprites[i].on('animationstart', () => {
         this.boingSprite(this.sprites[i])
-        this.frameListeners.forEach((fn) => fn(1))
+        if (i == 0) {
+          this.frameListeners.forEach((fn) => fn(1))
+        }
       })
       this.sprites[i].on('animationupdate', () => {
         this.boingSprite(this.sprites[i])
-        this.frameListeners.forEach((fn) =>
-          fn(this.sprites[0].anims.currentFrame.index)
-        )
+        if (i == 0) {
+          this.frameListeners.forEach((fn) =>
+            fn(this.sprites[0].anims.currentFrame.index)
+          )
+        }
       })
     })
 

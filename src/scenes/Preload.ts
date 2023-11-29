@@ -179,6 +179,12 @@ export class Preload extends Phaser.Scene {
     this.load.audio('weak-attack', 'audio/sfx/weak-attack.wav')
     this.load.audio('effective-attack', 'audio/sfx/effective-attack.wav')
     this.load.audio('heal', 'audio/sfx/heal.wav')
+    this.load.audio('fire-attack', 'audio/sfx/fire-attack.wav')
+    this.load.audio('water-attack', 'audio/sfx/water-attack.wav')
+    this.load.audio('grass-attack', 'audio/sfx/grass-attack.wav')
+    this.load.audio('light-attack', 'audio/sfx/light-attack.wav')
+    this.load.audio('dark-attack', 'audio/sfx/dark-attack.wav')
+    this.load.audio('burst', 'audio/sfx/burst.wav')
 
     // Cutscene
     this.load.image('intro-1', 'cutscene/intro-1.png')
