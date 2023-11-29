@@ -288,7 +288,6 @@ export class Tutorial extends Phaser.Scene {
   create() {
     this.sound.stopAll()
     this.sound.play('tutorial', { volume: 0.25, loop: true })
-    this.cameras.main.setBackgroundColor(0x369f5c)
     this.board = new TutorialBoard(this)
     this.board.setDisabled(true)
 

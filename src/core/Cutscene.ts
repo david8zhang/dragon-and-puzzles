@@ -30,7 +30,6 @@ export class Cutscene {
     this.onComplete = config.onComplete
     this.bgImage = this.game.add
       .image(0, 0, '')
-      .setDisplaySize(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT)
       .setOrigin(0, 0)
       .setDepth(Constants.SORT_ORDER.background)
 
