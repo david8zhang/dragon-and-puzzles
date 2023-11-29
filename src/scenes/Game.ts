@@ -10,7 +10,7 @@ import { Constants } from '~/utils/Constants'
 
 export class Game extends Phaser.Scene {
   public board!: Board
-  public level: number = 0
+  public level: number = 4
   public player!: Player
   public enemy!: Enemy
   public playerSideMask!: Phaser.Display.Masks.BitmapMask

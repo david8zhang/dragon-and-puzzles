@@ -93,6 +93,7 @@ export class Preload extends Phaser.Scene {
         frameHeight: 64,
       }
     )
+
     this.load.spritesheet('fire-attack-charge', 'vfx/fire-attack-charge.png', {
       frameWidth: 128,
       frameHeight: 64,
@@ -105,6 +106,61 @@ export class Preload extends Phaser.Scene {
       frameWidth: 196,
       frameHeight: 64,
     })
+
+    this.load.spritesheet(
+      'water-attack-charge',
+      'vfx/water-attack-charge.png',
+      {
+        frameWidth: 128,
+        frameHeight: 64,
+      }
+    )
+    this.load.spritesheet('water-attack', 'vfx/water-attack.png', {
+      frameWidth: 128,
+      frameHeight: 64,
+    })
+    this.load.spritesheet(
+      'water-attack-impact',
+      'vfx/water-attack-impact.png',
+      {
+        frameWidth: 196,
+        frameHeight: 64,
+      }
+    )
+
+    this.load.spritesheet('dark-attack-charge', 'vfx/dark-attack-charge.png', {
+      frameWidth: 128,
+      frameHeight: 64,
+    })
+    this.load.spritesheet('dark-attack', 'vfx/dark-attack.png', {
+      frameWidth: 128,
+      frameHeight: 64,
+    })
+    this.load.spritesheet('dark-attack-impact', 'vfx/dark-attack-impact.png', {
+      frameWidth: 196,
+      frameHeight: 64,
+    })
+
+    this.load.spritesheet(
+      'light-attack-charge',
+      'vfx/light-attack-charge.png',
+      {
+        frameWidth: 128,
+        frameHeight: 64,
+      }
+    )
+    this.load.spritesheet('light-attack', 'vfx/light-attack.png', {
+      frameWidth: 128,
+      frameHeight: 64,
+    })
+    this.load.spritesheet(
+      'light-attack-impact',
+      'vfx/light-attack-impact.png',
+      {
+        frameWidth: 196,
+        frameHeight: 64,
+      }
+    )
 
     // BGM
     this.load.audio('start', 'audio/bgm/start.mp3')
