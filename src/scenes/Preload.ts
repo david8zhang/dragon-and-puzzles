@@ -55,8 +55,6 @@ export class Preload extends Phaser.Scene {
     )
 
     this.load.image('heart', 'ui/heart.png')
-    this.load.image('gameover', 'ui/gameover.png')
-    this.load.image('victory', 'ui/victory.jpeg')
     this.load.image('background', 'ui/bg.png')
     this.load.image('pointer', 'ui/pointer.png')
 
@@ -181,9 +179,19 @@ export class Preload extends Phaser.Scene {
     this.load.audio('weak-attack', 'audio/sfx/weak-attack.wav')
     this.load.audio('effective-attack', 'audio/sfx/effective-attack.wav')
     this.load.audio('heal', 'audio/sfx/heal.wav')
+
+    // Cutscene
+    this.load.image('intro-1', 'cutscene/intro-1.png')
+    this.load.image('intro-2', 'cutscene/intro-2.png')
+    this.load.image('intro-3', 'cutscene/intro-3.png')
+    this.load.image('intro-4', 'cutscene/intro-4.jpg')
+    this.load.image('boss-1', 'cutscene/boss-1.png')
+    this.load.image('boss-2', 'cutscene/boss-2.png')
+    this.load.image('victory', 'cutscene/victory.png')
+    this.load.image('game-over', 'cutscene/game-over.png')
   }
 
   create() {
-    this.scene.start('game')
+    this.scene.start('start')
   }
 }
