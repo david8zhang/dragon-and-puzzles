@@ -10,6 +10,14 @@ export class RainbowDragonEnemy extends Enemy {
     element: Elements.ALL,
     baseDamage: 25,
     maxTurnsUntilAttack: 2,
+    chargeAnimationOffset: {
+      x: -20,
+      y: -60,
+    },
+    attackAnimationOffset: {
+      x: -130,
+      y: 0,
+    },
   }
   private static readonly SCALES_SPRITE_NAME_1: string =
     'rainbow-dragon-scales-1'
@@ -54,6 +62,7 @@ export class RainbowDragonEnemy extends Enemy {
       startFrame: 1,
       endFrame: 5,
       frameDurations: [150, 150, 150, 500, 0],
+      isCharacter: true,
     })
   }
 
@@ -68,6 +77,59 @@ export class RainbowDragonEnemy extends Enemy {
           Phaser.Display.Color.HSLToColor(tween.getValue() / 100, 1, 0.75).color
         )
       },
+    })
+  }
+
+  protected async tweenToPosition(x: number, y: number): Promise<void> {
+    const startX = this.sprite.sprites[0].x
+    const startY = this.sprite.sprites[0].y
+    return new Promise((resolve, reject) => {
+      this.game.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: 500,
+        ease: 'expo.out',
+        onUpdate: (tween) => {
+          const xPos = Phaser.Math.Linear(startX, x, tween.getValue())
+          const yPos = Phaser.Math.Linear(startY, y, tween.getValue())
+          this.sprite.sprites.forEach((sprite) =>
+            sprite.setPosition(xPos, yPos)
+          )
+        },
+        onComplete: () => {
+          resolve()
+        },
+      })
+    })
+  }
+
+  protected async playAttackAnimation(element: Elements): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.sprite.play(
+        () => resolve(), // onComplete
+        (frame) => {
+          switch (frame) {
+            // Frame 1 = charge animation
+            case 4:
+              this.game.attackEffectsManager.playChargeFX(
+                Enemy.POSITION.x + this.chargeAnimationOffset.x,
+                Enemy.POSITION.y + this.chargeAnimationOffset.y,
+                element,
+                false // isFromPlayer
+              )
+              break
+            // Frame 2 = impact animation
+            case 5:
+              this.game.attackEffectsManager.playAttackFX(
+                Enemy.POSITION.x + this.attackAnimationOffset.x,
+                Enemy.POSITION.y + this.attackAnimationOffset.y,
+                element,
+                false // isFromPlayer
+              )
+              break
+          }
+        }
+      )
     })
   }
 

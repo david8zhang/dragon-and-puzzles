@@ -1,14 +1,18 @@
-import { Game } from '~/scenes/Game'
+import 'babel-polyfill'
+import { Scene } from 'phaser'
+
 import { Constants } from '~/utils/Constants'
 
 export class BattleUI {
-  private game: Game
-
+  private game: Scene
   private divider: Phaser.GameObjects.Rectangle
-  private playerSideMask: Phaser.Display.Masks.BitmapMask
-  private enemySideMask: Phaser.Display.Masks.BitmapMask
 
-  constructor(game: Game) {
+  public playerBG: Phaser.GameObjects.Image
+  public enemyBG: Phaser.GameObjects.Image
+  public playerSideMask: Phaser.Display.Masks.BitmapMask
+  public enemySideMask: Phaser.Display.Masks.BitmapMask
+
+  constructor(game: Scene) {
     this.game = game
     this.divider = this.game.add
       .rectangle(
@@ -36,12 +40,12 @@ export class BattleUI {
       playerMaskRect
     )
     // Add player BG image
-    const playerBG = this.game.add
+    this.playerBG = this.game.add
       .image(0, 0, 'background')
       .setDisplaySize(Constants.WINDOW_WIDTH, 375)
       .setOrigin(0, 0)
       .setDepth(Constants.SORT_ORDER.background)
-    playerBG.setMask(this.playerSideMask)
+    this.playerBG.setMask(this.playerSideMask)
 
     // enemy side mask
     const enemyMaskRect = this.game.add.graphics()
@@ -60,11 +64,57 @@ export class BattleUI {
     )
 
     // Add enemy BG image
-    const enemyBG = this.game.add
+    this.enemyBG = this.game.add
       .image(200, 0, 'background')
       .setDisplaySize(Constants.WINDOW_WIDTH, 375)
       .setOrigin(0, 0)
       .setDepth(Constants.SORT_ORDER.background)
-    enemyBG.setMask(this.enemySideMask)
+    this.enemyBG.setMask(this.enemySideMask)
+  }
+
+  async tweenPlayerParallaxBackground(amount: number) {
+    return this.tweenParallaxBackground(true, amount)
+  }
+
+  async tweenEnemyParallaxBackground(amount: number) {
+    return this.tweenParallaxBackground(false, amount)
+  }
+
+  shakeBackground(isPlayer: boolean) {
+    const image = isPlayer ? this.playerBG : this.enemyBG
+    this.game.tweens.add({
+      targets: image,
+      x: {
+        from: image.x,
+        to: image.x + (isPlayer ? -3 : 3),
+      },
+      duration: 10,
+      yoyo: true,
+      repeat: 10,
+    })
+  }
+
+  private async tweenParallaxBackground(
+    isPlayer: boolean,
+    amount: number
+  ): Promise<void> {
+    const image = isPlayer ? this.playerBG : this.enemyBG
+    const startX = image.x
+    const endX = image.x + amount
+    return new Promise((resolve, reject) => {
+      this.game.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: 500,
+        ease: 'expo.out',
+        onUpdate: (tween) => {
+          const xPos = Phaser.Math.Linear(startX, endX, tween.getValue())
+          image.setPosition(xPos, image.y)
+        },
+        onComplete: () => {
+          resolve()
+        },
+      })
+    })
   }
 }

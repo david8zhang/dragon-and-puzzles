@@ -13,6 +13,14 @@ export interface EnemyConfig {
   element: Elements
   baseDamage: number
   maxTurnsUntilAttack: number
+  chargeAnimationOffset: {
+    x: number
+    y: number
+  }
+  attackAnimationOffset: {
+    x: number
+    y: number
+  }
 }
 
 export const ENEMIES: EnemyConfig[] = [
@@ -22,6 +30,14 @@ export const ENEMIES: EnemyConfig[] = [
     element: Elements.GRASS,
     baseDamage: 10,
     maxTurnsUntilAttack: 4,
+    chargeAnimationOffset: {
+      x: -20,
+      y: -55,
+    },
+    attackAnimationOffset: {
+      x: -120,
+      y: 0,
+    },
   },
   {
     maxHealth: 100,
@@ -29,6 +45,14 @@ export const ENEMIES: EnemyConfig[] = [
     element: Elements.WATER,
     baseDamage: 15,
     maxTurnsUntilAttack: 3,
+    chargeAnimationOffset: {
+      x: -20,
+      y: -20,
+    },
+    attackAnimationOffset: {
+      x: -120,
+      y: -15,
+    },
   },
   {
     maxHealth: 125,
@@ -36,6 +60,14 @@ export const ENEMIES: EnemyConfig[] = [
     element: Elements.LIGHT,
     baseDamage: 20,
     maxTurnsUntilAttack: 3,
+    chargeAnimationOffset: {
+      x: -20,
+      y: 20,
+    },
+    attackAnimationOffset: {
+      x: -120,
+      y: 50,
+    },
   },
   {
     maxHealth: 150,
@@ -43,6 +75,14 @@ export const ENEMIES: EnemyConfig[] = [
     element: Elements.DARK,
     baseDamage: 20,
     maxTurnsUntilAttack: 3,
+    chargeAnimationOffset: {
+      x: -30,
+      y: 30,
+    },
+    attackAnimationOffset: {
+      x: -90,
+      y: 30,
+    },
   },
 ]
 
@@ -55,7 +95,7 @@ export class Enemy {
   public readonly maxHealth: number
   public health: number
   public healthBar!: Healthbar
-  public sprite: AnimatedSprite
+  public sprite!: AnimatedSprite
   public element!: Elements
 
   protected game: Game
@@ -67,6 +107,15 @@ export class Enemy {
   protected turnEndListener: Array<() => void> = []
   public onDiedListener: Array<() => void> = []
 
+  protected chargeAnimationOffset: {
+    x: number
+    y: number
+  }
+  protected attackAnimationOffset: {
+    x: number
+    y: number
+  }
+
   constructor(game: Game, config: EnemyConfig) {
     this.game = game
 
@@ -77,6 +126,8 @@ export class Enemy {
     this.maxTurnsUntilAttack = config.maxTurnsUntilAttack
     this.setupHealthbar()
 
+    this.chargeAnimationOffset = config.chargeAnimationOffset
+    this.attackAnimationOffset = config.attackAnimationOffset
     this.sprite = this.setupSprite(config)
 
     // Set up next move text
@@ -116,7 +167,8 @@ export class Enemy {
       },
       startFrame: 1,
       endFrame: 2,
-      frameDurations: [250, 0],
+      frameRate: 2.5,
+      isCharacter: true,
     })
   }
 
@@ -164,9 +216,31 @@ export class Enemy {
     )
   }
 
-  damage(amount: number): void {
-    this.health = Math.max(0, this.health - amount)
+  damage(amount: number, element: Elements): void {
+    const hasElementAdv =
+      Constants.WEAKNESS_MAP[this.game.enemy.element].includes(element)
+    const hasElementDisadv =
+      Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
+    if (hasElementAdv) {
+      this.game.sound.play('effective-attack')
+      this.game.cameras.main.shake(250, 0.005)
+    } else if (hasElementDisadv) {
+      this.game.sound.play('weak-attack')
+    } else {
+      this.game.sound.play('basic-attack')
+    }
 
+    UINumber.createNumber(
+      `${amount}`,
+      this.game,
+      Enemy.POSITION.x,
+      Enemy.POSITION.y,
+      `#${Constants.ELEMENT_TO_COLOR[element]}`,
+      hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
+    )
+    this.sprite.flash()
+    this.game.battleUI.shakeBackground(false)
+    this.health = Math.max(0, this.health - amount)
     this.healthBar.draw()
   }
 
@@ -185,46 +259,86 @@ export class Enemy {
       this.handleDeath()
       return
     }
+    this.sprite.idleTween?.stop()
 
     this.turnsUntilAttack--
     if (this.turnsUntilAttack === 0) {
       // attack animation
-      this.sprite.play(() => this.attack())
+      this.game.battleUI.tweenEnemyParallaxBackground(15)
+      await this.tweenToPosition(Enemy.POSITION.x + 50, Enemy.POSITION.y)
+      await this.playAttackAnimation(this.element)
+
+      this.game.time.delayedCall(500, () => {
+        this.game.attackEffectsManager.playImpactAnimation(
+          Player.POSITION.x + 50,
+          Player.POSITION.y,
+          this.element,
+          false
+        )
+        this.attackListener.forEach((fn) => fn(this.baseDamage)) // deal damage
+        this.turnsUntilAttack = this.maxTurnsUntilAttack
+      })
+
+      this.game.time.delayedCall(500, () => {
+        this.tweenToPosition(Enemy.POSITION.x, Enemy.POSITION.y).then(() =>
+          this.sprite.idleTween?.restart()
+        )
+        this.game.battleUI.tweenEnemyParallaxBackground(-15)
+        this.endTurn()
+      })
     } else {
       this.endTurn()
     }
   }
 
-  attack() {
-    const attackOrb = this.game.add
-      .sprite(Enemy.POSITION.x, Enemy.POSITION.y, `orb-${this.element}`)
-      .setDepth(1000)
-    this.game.tweens.add({
-      targets: [attackOrb],
-      duration: 500,
-      x: {
-        from: Enemy.POSITION.x,
-        to: Player.POSITION.x,
-      },
-      y: {
-        from: Enemy.POSITION.y,
-        to: Player.POSITION.y,
-      },
-      onComplete: () => {
-        attackOrb.destroy()
-        this.attackListener.forEach((fn) => fn(this.baseDamage)) // deal 10 damage
-        this.turnsUntilAttack = this.maxTurnsUntilAttack
-        this.game.sound.play('basic-attack')
-        UINumber.createNumber(
-          `${this.baseDamage}`,
-          this.game,
-          Player.POSITION.x,
-          Player.POSITION.y,
-          'white',
-          '25px'
-        )
-        this.endTurn()
-      },
+  protected async playAttackAnimation(element: Elements): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.sprite.play(
+        () => resolve(), // onComplete
+        (frame) => {
+          switch (frame) {
+            // Frame 1 = charge animation
+            case 1:
+              this.game.attackEffectsManager.playChargeFX(
+                Enemy.POSITION.x + this.chargeAnimationOffset.x,
+                Enemy.POSITION.y + this.chargeAnimationOffset.y,
+                element,
+                false // isFromPlayer
+              )
+              break
+            // Frame 2 = impact animation
+            case 2:
+              this.game.attackEffectsManager.playAttackFX(
+                Enemy.POSITION.x + this.attackAnimationOffset.x,
+                Enemy.POSITION.y + this.attackAnimationOffset.y,
+                element,
+                false // isFromPlayer
+              )
+              break
+          }
+        }
+      )
+    })
+  }
+
+  protected async tweenToPosition(x: number, y: number): Promise<void> {
+    const startX = this.sprite.sprites[0].x
+    const startY = this.sprite.sprites[0].y
+    return new Promise((resolve, reject) => {
+      this.game.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: 500,
+        ease: 'expo.out',
+        onUpdate: (tween) => {
+          const xPos = Phaser.Math.Linear(startX, x, tween.getValue())
+          const yPos = Phaser.Math.Linear(startY, y, tween.getValue())
+          this.sprite.sprites[0].setPosition(xPos, yPos)
+        },
+        onComplete: () => {
+          resolve()
+        },
+      })
     })
   }
 

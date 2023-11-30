@@ -23,9 +23,6 @@ export class Player {
   public health: number = this.maxHealth
 
   private healthBar!: Healthbar
-  private attackListener: Array<
-    (damagePerElement: { [key in Elements]?: number }) => void
-  > = []
   private turnEndListener: Array<() => void> = []
 
   constructor(game: Game, board: Board) {
@@ -37,7 +34,8 @@ export class Player {
       position: Player.POSITION,
       startFrame: 1,
       endFrame: 2,
-      frameDurations: [250, 0],
+      frameRate: 2.5,
+      isCharacter: true,
     })
 
     this.setupHealthbar()
@@ -50,7 +48,6 @@ export class Player {
       const damagePerElement = this.calculateComboDamageOrHealAmt(combo)
       board.setDisabled(true)
       this.handlePlayerAttack(damagePerElement)
-      this.attackListener.forEach((fn) => fn(damagePerElement))
     })
   }
 
@@ -69,8 +66,34 @@ export class Player {
     )
   }
 
-  handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
-    this.attack(0, dmgPerElement)
+  async handlePlayerAttack(dmgPerElement: { [key in Elements]?: number }) {
+    this.sprite.idleTween?.stop()
+    const availableElements = this.game.board.getElementsForLevel() as string[]
+    const elements = Object.keys(dmgPerElement).filter(
+      (element) =>
+        element !== Elements.HEALTH && availableElements.includes(element)
+    )
+
+    if (elements.length > 0) {
+      this.game.battleUI.tweenPlayerParallaxBackground(-15)
+      await this.tweenToPosition(Player.POSITION.x - 50, Player.POSITION.y)
+    }
+
+    // Play attack animation for each element
+    for (const element of elements) {
+      await this.playAttackAnimation(element as Elements)
+
+      this.game.time.delayedCall(500, () => {
+        this.game.attackEffectsManager.playImpactAnimation(
+          Enemy.POSITION.x,
+          Enemy.POSITION.y - 10,
+          element as Elements,
+          true // isFromPlayer
+        )
+        this.game.enemy.damage(dmgPerElement[element], element as Elements)
+      })
+    }
+
     // Handle heals
     if (dmgPerElement[Elements.HEALTH] != undefined) {
       const healAmount = Math.round(
@@ -88,85 +111,90 @@ export class Player {
         '20px'
       )
     }
-  }
 
-  private attack(index: number, dmgPerElement: { [key in Elements]?: number }) {
-    const availableElements = this.game.board.getElementsForLevel() as string[]
-    const elements = Object.keys(dmgPerElement).filter(
-      (element) =>
-        element !== Elements.HEALTH && availableElements.includes(element)
-    )
-    if (index == elements.length) {
+    this.game.time.delayedCall(500, () => {
+      // if we attacked, move the player back
+      if (elements.length > 0) {
+        this.tweenToPosition(Player.POSITION.x, Player.POSITION.y).then(() =>
+          this.sprite.idleTween?.restart()
+        )
+        this.game.battleUI.tweenPlayerParallaxBackground(15)
+      }
       this.turnEndListener.forEach((fn) => fn())
       this.sprite.reset()
-      return
-    }
-    this.sprite.play(() => this.shootElementalBlast(index, dmgPerElement))
+    })
   }
 
-  shootElementalBlast(
-    index: number,
-    dmgPerElement: { [key in Elements]?: number }
-  ) {
-    const availableElements = this.game.board.getElementsForLevel() as string[]
-    const elements = Object.keys(dmgPerElement).filter(
-      (element) =>
-        element !== Elements.HEALTH && availableElements.includes(element)
-    )
-    const element = elements[index]
-    const attackOrb = this.game.add.sprite(
-      Player.POSITION.x,
-      Player.POSITION.y,
-      `orb-${element}`
-    )
-    this.game.tweens.add({
-      targets: [attackOrb],
-      x: {
-        from: attackOrb.x,
-        to: Enemy.POSITION.x,
-      },
-      y: {
-        from: attackOrb.y,
-        to: Enemy.POSITION.y,
-      },
-      duration: 500,
-      onComplete: () => {
-        attackOrb.destroy()
+  async tweenToPosition(x: number, y: number): Promise<void> {
+    const startX = this.sprite.sprites[0].x
+    const startY = this.sprite.sprites[0].y
+    return new Promise((resolve, reject) => {
+      this.game.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: 500,
+        ease: 'expo.out',
+        onUpdate: (tween) => {
+          const xPos = Phaser.Math.Linear(startX, x, tween.getValue())
+          const yPos = Phaser.Math.Linear(startY, y, tween.getValue())
+          this.sprite.sprites[0].setPosition(xPos, yPos)
+        },
+        onComplete: () => {
+          resolve()
+        },
+      })
+    })
+  }
 
-        const hasElementAdv =
-          Constants.WEAKNESS_MAP[this.game.enemy.element].includes(element)
-        const hasElementDisadv =
-          Constants.RESISTANCES_MAP[this.game.enemy.element].includes(element)
-        if (hasElementAdv) {
-          this.game.sound.play('effective-attack')
-          this.game.cameras.main.shake(250, 0.005)
-        } else if (hasElementDisadv) {
-          this.game.sound.play('weak-attack')
-        } else {
-          this.game.sound.play('basic-attack')
+  private async playAttackAnimation(element: Elements): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.sprite.play(
+        () => resolve(), // onComplete
+        (frame) => {
+          switch (frame) {
+            // Frame 1 = charge animation
+            case 1:
+              this.game.attackEffectsManager.playChargeFX(
+                Player.POSITION.x - 20,
+                Player.POSITION.y - 30,
+                element,
+                true // isFromPlayer
+              )
+              break
+            // Frame 2 = impact animation
+            case 2:
+              this.game.attackEffectsManager.playAttackFX(
+                Player.POSITION.x + 120,
+                Player.POSITION.y - 10,
+                element,
+                true // isFromPlayer
+              )
+              break
+          }
         }
-
-        UINumber.createNumber(
-          `${dmgPerElement[element]}`,
-          this.game,
-          Enemy.POSITION.x,
-          Enemy.POSITION.y,
-          `#${Constants.ELEMENT_TO_COLOR[element]}`,
-          hasElementAdv ? '30px' : hasElementDisadv ? '20px' : '25px'
-        )
-        this.game.enemy.damage(dmgPerElement[element])
-        this.attack(index + 1, dmgPerElement)
-      },
+      )
     })
   }
 
   damage(amount: number) {
     this.health -= amount
+    UINumber.createNumber(
+      `${amount}`,
+      this.game,
+      Player.POSITION.x,
+      Player.POSITION.y,
+      'white',
+      '25px'
+    )
+    this.sprite.flash()
+    this.game.battleUI.shakeBackground(true)
+    this.game.sound.play('basic-attack')
+    this.healthBar.draw()
+
     if (this.health <= 0) {
       this.health = 0
       this.game.scene.start('gameover')
     }
-    this.healthBar.draw()
   }
 
   calculateComboDamageOrHealAmt(combos: string[][]): {
@@ -197,12 +225,6 @@ export class Player {
     })
 
     return mapping
-  }
-
-  addAttackListener(
-    listener: (damagePerElement: { [key in Elements]?: number }) => void
-  ) {
-    this.attackListener.push(listener)
   }
 
   addTurnEndListener(listener: () => void) {
