@@ -16,10 +16,18 @@ export enum TutorialPhase {
 export class Tutorial extends Phaser.Scene {
   private static TUTORIAL_ENEMY_CONFIG = {
     maxHealth: 25,
-    spriteName: 'green-dragon',
+    spriteName: 'dummy-dragon',
     element: Elements.GRASS,
     baseDamage: 3,
     maxTurnsUntilAttack: 5,
+    chargeAnimationOffset: {
+      x: -20,
+      y: 0,
+    },
+    attackAnimationOffset: {
+      x: -120,
+      y: 0,
+    },
   }
   private static ALL_TEXT_LINES = [
     [
@@ -62,6 +70,8 @@ export class Tutorial extends Phaser.Scene {
   private transitionSubtitleText!: Phaser.GameObjects.Text
   private continueButton!: Button
   public battleUI!: BattleUI
+  public playerSideMask!: Phaser.Display.Masks.BitmapMask
+  public enemySideMask!: Phaser.Display.Masks.BitmapMask
   public attackEffectsManager!: AttackEffectsManager
 
   constructor() {
@@ -291,6 +301,8 @@ export class Tutorial extends Phaser.Scene {
 
   create() {
     this.battleUI = new BattleUI(this)
+    this.enemySideMask = this.battleUI.enemySideMask
+    this.playerSideMask = this.battleUI.playerSideMask
     this.attackEffectsManager = new AttackEffectsManager(this)
     this.sound.stopAll()
     this.sound.play('tutorial', { volume: 0.25, loop: true })
@@ -308,10 +320,6 @@ export class Tutorial extends Phaser.Scene {
     )
     this.enemy.toggleInvulnerable(true)
 
-    this.add
-      .image(0, 0, 'background')
-      .setDisplaySize(Constants.WINDOW_WIDTH, 375)
-      .setOrigin(0, 0)
     this.setupTutorialText()
     this.createTransitionOverlay()
   }

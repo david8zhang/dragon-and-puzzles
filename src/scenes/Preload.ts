@@ -5,6 +5,10 @@ export class Preload extends Phaser.Scene {
 
   preload() {
     this.load.image('tutorial-debug', 'dragons/axew.png')
+    this.load.spritesheet('dummy-dragon', 'dragons/dummy-dragon.png', {
+      frameWidth: 128,
+      frameHeight: 128,
+    })
     this.load.spritesheet('green-dragon', 'dragons/grass-dragon.png', {
       frameWidth: 128,
       frameHeight: 128,
