@@ -1,5 +1,6 @@
 import { Game } from '~/scenes/Game'
 import { Enemy, EnemyConfig } from './Enemy'
+import { Elements } from '~/utils/Constants'
 
 export class TutorialEnemy extends Enemy {
   private isInvulnerable = false
@@ -22,9 +23,11 @@ export class TutorialEnemy extends Enemy {
     this.healthBar.toggleHealthText(show)
   }
 
-  damage(amount: number) {
+  damage(amount: number, element: Elements) {
     if (!this.isInvulnerable) {
-      super.damage(amount)
+      super.damage(amount, element)
+    } else {
+      this.game.sound.play('effective-attack')
     }
   }
 }

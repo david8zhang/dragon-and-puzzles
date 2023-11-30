@@ -5,7 +5,8 @@ import { Constants } from '~/utils/Constants'
 
 export class BattleUI {
   private game: Scene
-  private divider: Phaser.GameObjects.Rectangle
+  private vDivider: Phaser.GameObjects.Rectangle
+  private hDivider: Phaser.GameObjects.Rectangle
 
   public playerBG: Phaser.GameObjects.Image
   public enemyBG: Phaser.GameObjects.Image
@@ -14,16 +15,28 @@ export class BattleUI {
 
   constructor(game: Scene) {
     this.game = game
-    this.divider = this.game.add
+    this.vDivider = this.game.add
       .rectangle(
         Constants.WINDOW_WIDTH / 2 - 2,
-        Constants.WINDOW_HEIGHT / 4,
+        0,
         2,
-        Constants.WINDOW_HEIGHT / 2,
+        Constants.WINDOW_HEIGHT / 2 - 25,
         0x000000,
         1.0
       )
       .setDepth(Constants.SORT_ORDER.top)
+      .setOrigin(0.5, 0)
+
+    this.hDivider = this.game.add
+      .rectangle(
+        0,
+        Constants.WINDOW_HEIGHT / 2 - 25,
+        Constants.WINDOW_WIDTH,
+        2,
+        0x000000
+      )
+      .setDepth(Constants.SORT_ORDER.top)
+      .setOrigin(0, 0.5)
 
     const playerMaskRect = this.game.add.graphics()
     playerMaskRect.fillStyle(0xffffff)

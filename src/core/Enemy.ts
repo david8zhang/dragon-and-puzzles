@@ -204,9 +204,8 @@ export class Enemy {
     this.healthBar = new Healthbar(
       this.game,
       {
-        // TODO: set positions relative to WINDOW_WIDTH, WINDOW_HEIGHT
         position: {
-          x: Enemy.POSITION.x - 100,
+          x: Enemy.POSITION.x - 114,
           y: Enemy.POSITION.y - 150,
         },
         length: 200,

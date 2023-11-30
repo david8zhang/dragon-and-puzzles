@@ -85,7 +85,7 @@ export class TutorialBoard extends Board {
           .setOrigin(0, 0)
           .setAlpha(0.5)
           .setDepth(Constants.SORT_ORDER.background)
-          .setStrokeStyle(2, 0x555555)
+          .setStrokeStyle(2, 0x222222)
 
         this.boardPanels.add(boardPanel)
 
