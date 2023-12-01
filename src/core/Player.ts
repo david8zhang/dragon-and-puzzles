@@ -56,7 +56,7 @@ export class Player {
       this.game,
       {
         position: {
-          x: Player.POSITION.x - 125,
+          x: Player.POSITION.x - 116.5,
           y: Player.POSITION.y - 150,
         },
         length: 200,

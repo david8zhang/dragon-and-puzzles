@@ -24,6 +24,7 @@ export class Board {
   protected orbs: (Orb | null)[][] = []
   protected boardPanels: Phaser.GameObjects.Group
   protected overlay: Phaser.GameObjects.Rectangle
+  protected underlay: Phaser.GameObjects.Rectangle
 
   protected combos: string[][] = [] // Total combos for the turn
   protected turnEndListener: Array<(combos: string[][]) => void> = []
@@ -43,6 +44,17 @@ export class Board {
       0.0
     )
     this.overlay.setDepth(Constants.SORT_ORDER.top)
+
+    this.underlay = this.scene.add
+      .rectangle(
+        0,
+        Constants.WINDOW_HEIGHT / 2 - 25,
+        Constants.WINDOW_WIDTH,
+        Constants.WINDOW_HEIGHT / 2 + 25,
+        0x401900
+      )
+      .setOrigin(0, 0)
+    this.underlay.setDepth(Constants.SORT_ORDER.background - 1)
 
     this.comboCounter = this.scene.add.group()
   }
@@ -78,7 +90,7 @@ export class Board {
           .setOrigin(0, 0)
           .setAlpha(0.5)
           .setDepth(Constants.SORT_ORDER.background)
-          .setStrokeStyle(2, 0x555555)
+          .setStrokeStyle(2, 0x222222)
 
         this.boardPanels.add(boardPanel)
 
